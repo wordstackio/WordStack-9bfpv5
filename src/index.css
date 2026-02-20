@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 20% 97%;
+    --foreground: 30 15% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 30 15% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 15% 15%;
+
+    --primary: 28 45% 45%;
+    --primary-foreground: 36 20% 97%;
+
+    --secondary: 30 10% 90%;
+    --secondary-foreground: 30 15% 25%;
+
+    --muted: 30 10% 92%;
+    --muted-foreground: 30 8% 45%;
+
+    --accent: 35 55% 88%;
+    --accent-foreground: 30 15% 25%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 36 20% 97%;
+
+    --border: 30 10% 88%;
+    --input: 30 10% 88%;
+    --ring: 28 45% 45%;
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
