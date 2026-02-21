@@ -21,6 +21,8 @@ import BecomePoet from "@/pages/BecomePoet";
 import InkWallet from "@/pages/InkWallet";
 import InkStore from "@/pages/InkStore";
 import Analytics from "@/pages/Analytics";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
 
 function App() {
   return (
@@ -47,6 +49,8 @@ function App() {
           <Route path="/ink-wallet" element={<InkWallet />} />
           <Route path="/ink-store" element={<InkStore />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/wsadmin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
         <BottomNav />
         <FAB />

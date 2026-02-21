@@ -3,6 +3,7 @@ export interface User {
   name: string;
   bio: string;
   isPoet: boolean;
+  isAdmin?: boolean;
   avatar?: string;
   followersCount: number;
   createdAt: string;
