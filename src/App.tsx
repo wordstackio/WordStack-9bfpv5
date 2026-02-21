@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { restoreSession } from "@/lib/auth";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import FAB from "@/components/layout/FAB";
@@ -25,6 +27,11 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 
 function App() {
+  useEffect(() => {
+    // Restore session on app load
+    restoreSession();
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-background">

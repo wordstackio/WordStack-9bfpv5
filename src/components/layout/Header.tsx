@@ -27,8 +27,8 @@ export default function Header() {
     }
   }, [user]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setMenuOpen(false);
     navigate("/");
     window.location.reload();

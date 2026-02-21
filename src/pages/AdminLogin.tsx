@@ -22,32 +22,33 @@ export default function AdminLogin() {
     }
   }, [navigate]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    // Simulate login - replace with actual Supabase auth
-    setTimeout(() => {
-      const user = login(email, password);
+    const { user, error: loginError } = await login(email, password);
       
-      if (!user) {
-        setError("Invalid credentials");
-        setLoading(false);
-        return;
-      }
+    if (loginError) {
+      setError(loginError);
+      setLoading(false);
+      return;
+    }
 
-      // Check if user is admin
-      const isAdmin = localStorage.getItem(`user-${user.id}-isAdmin`) === "true";
-      
-      if (!isAdmin) {
-        setError("Access denied. Admin privileges required.");
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setError("Invalid credentials");
+      setLoading(false);
+      return;
+    }
 
-      navigate("/admin/dashboard");
-    }, 500);
+    // Check if user is admin
+    if (!user.isAdmin) {
+      setError("Access denied. Admin privileges required.");
+      setLoading(false);
+      return;
+    }
+
+    navigate("/admin/dashboard");
   };
 
   return (

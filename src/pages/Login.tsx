@@ -3,16 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { mockLogin } from "@/lib/auth";
+import { login } from "@/lib/auth";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    mockLogin(email);
-    navigate("/feed");
+    setError("");
+    setLoading(true);
+
+    const { user, error: loginError } = await login(email, password);
+
+    if (loginError) {
+      setError(loginError);
+      setLoading(false);
+      return;
+    }
+
+    if (user) {
+      // Redirect based on user role
+      if (user.isAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/feed");
+      }
+    }
   };
 
   return (
@@ -26,6 +47,15 @@ export default function Login() {
         </p>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900">Login Failed</p>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium mb-2">Email</label>
             <Input 
@@ -34,6 +64,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           
@@ -42,12 +73,22 @@ export default function Login() {
             <Input 
               type="password" 
               placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Log In
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Logging In...
+              </>
+            ) : (
+              "Log In"
+            )}
           </Button>
         </form>
 
