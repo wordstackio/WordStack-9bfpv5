@@ -3,8 +3,16 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
-import { getFollows, getPublishedPoems, getInkTransactions } from "@/lib/storage";
-import { mockPoems } from "@/lib/mockData";
+import { 
+  getAnalyticsTimeSeries,
+  getTopPerformingPoems,
+  getAnalyticsSummary,
+  getReaderDemographics,
+  exportAnalyticsToCSV,
+  AnalyticsTimeSeriesData,
+  PoemPerformanceData,
+  AnalyticsSummary
+} from "@/lib/analytics";
 import { 
   TrendingUp, 
   Users, 
@@ -33,31 +41,17 @@ import {
   ResponsiveContainer 
 } from "recharts";
 
-interface TimeSeriesData {
-  date: string;
-  claps: number;
-  followers: number;
-  poems: number;
-  engagement: number;
-}
-
-interface PoemPerformance {
-  id: string;
-  title: string;
-  claps: number;
-  comments: number;
-  views: number;
-  engagementRate: number;
-}
-
 type TimePeriod = "week" | "month" | "all";
 
 export default function Analytics() {
   const navigate = useNavigate();
   const user = getCurrentUser();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
-  const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData[]>([]);
-  const [topPoems, setTopPoems] = useState<PoemPerformance[]>([]);
+  const [timeSeriesData, setTimeSeriesData] = useState<AnalyticsTimeSeriesData[]>([]);
+  const [topPoems, setTopPoems] = useState<PoemPerformanceData[]>([]);
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const demographics = getReaderDemographics();
 
   useEffect(() => {
     if (!user) {
@@ -70,95 +64,57 @@ export default function Analytics() {
       return;
     }
 
-    generateAnalyticsData();
+    loadAnalyticsData();
   }, [user, navigate, timePeriod]);
 
   if (!user || !user.isPoet) return null;
 
-  const generateAnalyticsData = () => {
-    const now = new Date();
-    const data: TimeSeriesData[] = [];
+  const loadAnalyticsData = async () => {
+    if (!user) return;
     
-    // Generate time series based on period
-    const days = timePeriod === "week" ? 7 : timePeriod === "month" ? 30 : 90;
-    
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
+    setLoading(true);
+    try {
+      const days = timePeriod === "week" ? 7 : timePeriod === "month" ? 30 : 90;
       
-      // Generate realistic random data with trends
-      const baseClaps = 10 + Math.floor(Math.random() * 20);
-      const trend = Math.floor((days - i) / 5); // Upward trend
+      // Load all analytics data in parallel
+      const [timeSeriesResult, topPoemsResult, summaryResult] = await Promise.all([
+        getAnalyticsTimeSeries(user.id, days),
+        getTopPerformingPoems(user.id, 5),
+        getAnalyticsSummary(user.id, timePeriod)
+      ]);
       
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        claps: baseClaps + trend + Math.floor(Math.random() * 10),
-        followers: Math.floor(5 + i * 0.5 + Math.random() * 3),
-        poems: Math.floor(i / 7) + (Math.random() > 0.8 ? 1 : 0),
-        engagement: Math.floor(60 + Math.random() * 30)
-      });
+      setTimeSeriesData(timeSeriesResult);
+      setTopPoems(topPoemsResult);
+      setSummary(summaryResult);
+    } catch (error) {
+      console.error('Failed to load analytics:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setTimeSeriesData(data);
-
-    // Generate top poems performance
-    const poetPoems = mockPoems.filter(p => p.poetId === user.id);
-    const poemPerformance: PoemPerformance[] = poetPoems.map(poem => ({
-      id: poem.id,
-      title: poem.title,
-      claps: poem.clapsCount,
-      comments: poem.commentsCount,
-      views: Math.floor(poem.clapsCount * (5 + Math.random() * 10)),
-      engagementRate: Math.floor(
-        ((poem.clapsCount + poem.commentsCount) / (poem.clapsCount * 8)) * 100
-      )
-    }));
-
-    poemPerformance.sort((a, b) => b.claps - a.claps);
-    setTopPoems(poemPerformance.slice(0, 5));
   };
 
-  // Calculate summary metrics
-  const totalClaps = timeSeriesData.reduce((sum, d) => sum + d.claps, 0);
-  const totalFollowers = timeSeriesData[timeSeriesData.length - 1]?.followers || 0;
-  const totalPoems = mockPoems.filter(p => p.poetId === user.id).length;
-  const avgEngagement = Math.floor(
-    timeSeriesData.reduce((sum, d) => sum + d.engagement, 0) / timeSeriesData.length
-  );
-
-  // Calculate growth percentages
-  const clapsGrowth = timeSeriesData.length > 1 
-    ? ((timeSeriesData[timeSeriesData.length - 1].claps - timeSeriesData[0].claps) / timeSeriesData[0].claps) * 100
-    : 0;
-  
-  const followerGrowth = timeSeriesData.length > 1
-    ? timeSeriesData[timeSeriesData.length - 1].followers - timeSeriesData[0].followers
-    : 0;
-
-  // Reader demographics (mock data)
-  const demographics = [
-    { name: "Poetry Enthusiasts", value: 45, color: "#8b5cf6" },
-    { name: "Writers", value: 30, color: "#06b6d4" },
-    { name: "Students", value: 15, color: "#10b981" },
-    { name: "Casual Readers", value: 10, color: "#f59e0b" }
-  ];
+  // Use summary data from database
+  const totalClaps = summary?.totalClaps || 0;
+  const totalFollowers = summary?.totalFollowers || 0;
+  const totalPoems = summary?.totalPoems || 0;
+  const avgEngagement = summary?.avgEngagement || 0;
+  const clapsGrowth = summary?.clapsGrowth || 0;
+  const followerGrowth = summary?.followerGrowth || 0;
 
   const handleExportData = () => {
-    const csvContent = [
-      ["Date", "Claps", "Followers", "Poems", "Engagement Rate"],
-      ...timeSeriesData.map(d => [d.date, d.claps, d.followers, d.poems, d.engagement])
-    ].map(row => row.join(",")).join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `wordstack-analytics-${timePeriod}-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    exportAnalyticsToCSV(timeSeriesData, timePeriod);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
