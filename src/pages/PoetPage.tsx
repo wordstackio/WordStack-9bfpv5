@@ -224,25 +224,25 @@ export default function PoetPage() {
               </h2>
             </div>
             
-            <Card className={`p-6 md:p-10 shadow-lg ${colors.card}`}>
+            <div>
               <Link to={`/poem/${featuredPoem.id}`}>
-                <h3 className={`${getFontClass()} text-2xl sm:text-3xl md:text-4xl font-bold mb-4 md:mb-6 hover:text-primary transition-colors`}>
+                <h3 className={`${getFontClass()} text-2xl sm:text-3xl md:text-4xl font-bold mb-4 md:mb-6 hover:text-primary transition-colors leading-tight`}>
                   {featuredPoem.title}
                 </h3>
               </Link>
-              <div className="prose prose-sm md:prose-lg max-w-none">
-                <pre className={`${getFontClass()} ${colors.text} text-sm sm:text-base md:text-lg leading-relaxed whitespace-pre-wrap break-words`}>
+              <div className="max-w-none">
+                <pre className={`${getFontClass()} ${colors.text} text-sm sm:text-base md:text-lg leading-loose whitespace-pre-wrap break-words`}>
                   {featuredPoem.content}
                 </pre>
               </div>
               <div className={`flex flex-wrap items-center gap-2 sm:gap-4 mt-6 md:mt-8 pt-4 md:pt-6 border-t ${colors.border} text-xs sm:text-sm ${colors.textMuted}`}>
                 <span>{featuredPoem.createdAt}</span>
-                <span className="hidden sm:inline">·</span>
-                <span><span className="mr-1">👏</span>{featuredPoem.clapsCount} claps</span>
-                <span className="hidden sm:inline">·</span>
+                <span className="hidden sm:inline">{'·'}</span>
+                <span><span className="mr-1">{'👏'}</span>{featuredPoem.clapsCount} claps</span>
+                <span className="hidden sm:inline">{'·'}</span>
                 <span>{featuredPoem.commentsCount} comments</span>
               </div>
-            </Card>
+            </div>
           </div>
         </section>
       )}

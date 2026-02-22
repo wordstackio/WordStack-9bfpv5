@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import PoemCard from "@/components/features/PoemCard";
 import PoetCard from "@/components/features/PoetCard";
 import { getCurrentUser } from "@/lib/auth";
@@ -130,10 +129,10 @@ export default function Feed() {
         {/* Poems Feed */}
         <section className="mb-12">
           {filteredPoems.length === 0 ? (
-            <Card className="p-12 text-center">
+            <div className="py-16 text-center">
               {activeTab === "following" ? (
                 <>
-                  <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-serif text-2xl font-bold mb-2">No poems yet</h3>
                   <p className="text-muted-foreground mb-6">
                     Follow some poets to see their latest work here.
@@ -142,16 +141,16 @@ export default function Feed() {
                 </>
               ) : (
                 <>
-                  <Feather className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <Feather className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-serif text-2xl font-bold mb-2">No poems yet</h3>
                   <p className="text-muted-foreground">
                     Be the first to publish a poem on WordStack.
                   </p>
                 </>
               )}
-            </Card>
+            </div>
           ) : (
-            <div className="space-y-6">
+            <div>
               {filteredPoems.slice(0, 10).map(poem => (
                 <PoemCard key={poem.id} poem={poem} />
               ))}
