@@ -1,7 +1,5 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { MessageCircle, User } from "lucide-react";
 import { mockPoems, mockPoets } from "@/lib/mockData";
 import { getCurrentUser } from "@/lib/auth";
@@ -88,163 +86,160 @@ export default function PoemPage() {
   const totalClaps = poem.clapsCount + localClaps;
 
   return (
-    <div className="min-h-screen bg-background py-12">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <Card className="p-8 md:p-12">
-          {/* Poet Info */}
-          <Link 
-            to={`/poet/${poem.poetId}`}
-            className="flex items-center gap-3 mb-8 group"
-          >
-            {poem.poetAvatar ? (
-              <img 
-                src={poem.poetAvatar} 
-                alt={poem.poetName}
-                className="w-12 h-12 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-                <User className="w-6 h-6 text-muted-foreground" />
+    <div className="min-h-screen bg-background py-12 md:py-20">
+      <article className="container mx-auto px-4 max-w-2xl">
+        {/* Poet Info */}
+        <Link 
+          to={`/poet/${poem.poetId}`}
+          className="flex items-center gap-3 mb-10 group"
+        >
+          {poem.poetAvatar ? (
+            <img 
+              src={poem.poetAvatar} 
+              alt={poem.poetName}
+              className="w-11 h-11 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center">
+              <User className="w-5 h-5 text-muted-foreground" />
+            </div>
+          )}
+          <div>
+            <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+              {poem.poetName}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
+            </p>
+          </div>
+        </Link>
+
+        {/* Poem Title */}
+        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-10 leading-tight text-balance">
+          {poem.title}
+        </h1>
+
+        {/* Poem Content */}
+        <div className="font-serif text-lg md:text-xl leading-loose text-foreground/85 whitespace-pre-line mb-16">
+          {poem.content}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-6 py-8 border-t border-border/40">
+          {/* Clap button - icon only with count + popover */}
+          <div className="relative">
+            <button
+              ref={clapButtonRef}
+              onClick={handleClap}
+              onMouseEnter={() => setShowClappers(true)}
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+              aria-label={`Clap for this poem. ${totalClaps} claps`}
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
+                {'👏'}
+              </span>
+              <span className="text-sm font-medium">
+                {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
+              </span>
+            </button>
+
+            {/* Clappers popover */}
+            {showClappers && totalClaps > 0 && (
+              <div
+                ref={clappersRef}
+                onMouseEnter={() => setShowClappers(true)}
+                onMouseLeave={() => setShowClappers(false)}
+                className="absolute bottom-full left-0 mb-2 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 p-3 animate-in fade-in-0 zoom-in-95"
+              >
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'} from {Math.min(totalClaps, mockClappers.length)} {Math.min(totalClaps, mockClappers.length) === 1 ? 'person' : 'people'}
+                </p>
+                <div className="space-y-2">
+                  {mockClappers.slice(0, Math.min(5, totalClaps)).map((clapper) => (
+                    <div key={clapper.id} className="flex items-center gap-2">
+                      <img
+                        src={clapper.avatar}
+                        alt={clapper.name}
+                        className="w-7 h-7 rounded-full object-cover"
+                      />
+                      <span className="text-sm text-foreground truncate">{clapper.name}</span>
+                    </div>
+                  ))}
+                </div>
+                {totalClaps > 5 && (
+                  <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                    and {totalClaps - 5} more
+                  </p>
+                )}
               </div>
             )}
-            <div>
-              <p className="font-medium text-foreground group-hover:text-primary transition-colors">
-                {poem.poetName}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
-              </p>
-            </div>
-          </Link>
-
-          {/* Poem Title */}
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-8">
-            {poem.title}
-          </h1>
-
-          {/* Poem Content */}
-          <div className="font-serif text-lg leading-relaxed text-foreground/90 whitespace-pre-line mb-12">
-            {poem.content}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-6 pt-8 border-t border-border">
-            {/* Clap button - icon only with count + popover */}
-            <div className="relative">
-              <button
-                ref={clapButtonRef}
-                onClick={handleClap}
-                onMouseEnter={() => setShowClappers(true)}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
-                aria-label={`Clap for this poem. ${totalClaps} claps`}
-              >
-                <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
-                  {'👏'}
-                </span>
-                <span className="text-sm font-medium">
-                  {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
-                </span>
-              </button>
+          <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            <MessageCircle className="w-5 h-5" />
+            <span className="text-sm font-medium">{poem.commentsCount}</span>
+          </button>
+        </div>
+      </article>
 
-              {/* Clappers popover */}
-              {showClappers && totalClaps > 0 && (
-                <div
-                  ref={clappersRef}
-                  onMouseEnter={() => setShowClappers(true)}
-                  onMouseLeave={() => setShowClappers(false)}
-                  className="absolute bottom-full left-0 mb-2 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 p-3 animate-in fade-in-0 zoom-in-95"
-                >
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'} from {Math.min(totalClaps, mockClappers.length)} {Math.min(totalClaps, mockClappers.length) === 1 ? 'person' : 'people'}
-                  </p>
-                  <div className="space-y-2">
-                    {mockClappers.slice(0, Math.min(5, totalClaps)).map((clapper) => (
-                      <div key={clapper.id} className="flex items-center gap-2">
-                        <img
-                          src={clapper.avatar}
-                          alt={clapper.name}
-                          className="w-7 h-7 rounded-full object-cover"
-                        />
-                        <span className="text-sm text-foreground truncate">{clapper.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {totalClaps > 5 && (
-                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
-                      and {totalClaps - 5} more
-                    </p>
-                  )}
+      {/* More from this Poet */}
+      {moreFromPoet.length > 0 && (
+        <section className="container mx-auto px-4 max-w-2xl mt-16 pt-12 border-t border-border/40">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              {poet?.avatar ? (
+                <img 
+                  src={poet.avatar} 
+                  alt={poet.name}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                  <User className="w-4 h-4 text-muted-foreground" />
                 </div>
               )}
+              <h2 className="font-serif text-xl font-semibold text-foreground">
+                More from {poem.poetName}
+              </h2>
             </div>
-
-            <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">{poem.commentsCount}</span>
-            </button>
+            <Link 
+              to={`/poet/${poem.poetId}`} 
+              className="text-sm text-primary hover:underline"
+            >
+              View all
+            </Link>
           </div>
-        </Card>
 
-        {/* More from this Poet */}
-        {moreFromPoet.length > 0 && (
-          <section className="mt-12">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                {poet?.avatar ? (
-                  <img 
-                    src={poet.avatar} 
-                    alt={poet.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                    <User className="w-4 h-4 text-muted-foreground" />
+          <div className="space-y-0">
+            {moreFromPoet.slice(0, 3).map((otherPoem) => {
+              const previewLines = otherPoem.content.split('\n').filter(l => l.trim()).slice(0, 2).join(' ');
+              return (
+                <Link key={otherPoem.id} to={`/poem/${otherPoem.id}`} className="block py-6 border-b border-border/40 last:border-b-0 group">
+                  <h3 className="font-serif text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    {otherPoem.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3 leading-relaxed">
+                    {previewLines}
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      {'👏'} {otherPoem.clapsCount} {otherPoem.clapsCount === 1 ? 'clap' : 'claps'}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <MessageCircle className="w-3 h-3" />
+                      {otherPoem.commentsCount}
+                    </span>
+                    <span className="ml-auto">
+                      {formatDistanceToNow(new Date(otherPoem.createdAt), { addSuffix: true })}
+                    </span>
                   </div>
-                )}
-                <h2 className="font-serif text-xl font-semibold text-foreground">
-                  More from {poem.poetName}
-                </h2>
-              </div>
-              <Link 
-                to={`/poet/${poem.poetId}`} 
-                className="text-sm text-primary hover:underline"
-              >
-                View all
-              </Link>
-            </div>
-
-            <div className="grid gap-4">
-              {moreFromPoet.slice(0, 3).map((otherPoem) => {
-                const previewLines = otherPoem.content.split('\n').filter(l => l.trim()).slice(0, 2).join(' ');
-                return (
-                  <Link key={otherPoem.id} to={`/poem/${otherPoem.id}`}>
-                    <Card className="p-5 hover:shadow-md transition-shadow">
-                      <h3 className="font-serif text-lg font-semibold text-foreground mb-1 hover:text-primary transition-colors">
-                        {otherPoem.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                        {previewLines}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          {'👏'} {otherPoem.clapsCount} {otherPoem.clapsCount === 1 ? 'clap' : 'claps'}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MessageCircle className="w-3 h-3" />
-                          {otherPoem.commentsCount}
-                        </span>
-                        <span className="ml-auto">
-                          {formatDistanceToNow(new Date(otherPoem.createdAt), { addSuffix: true })}
-                        </span>
-                      </div>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        )}
-      </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+    </div>
       
       {/* Out of Ink Modal */}
       {showOutOfInkModal && (

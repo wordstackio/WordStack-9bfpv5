@@ -1,7 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { getCollection, getPublishedPoems } from "@/lib/storage";
 import { mockPoems } from "@/lib/mockData";
 import { Collection, Poem } from "@/types";
@@ -105,8 +104,8 @@ export default function CollectionPage() {
       <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           {poems.length === 0 ? (
-            <Card className="p-12 text-center">
-              <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <div className="py-16 text-center">
+              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-serif text-2xl font-bold mb-2">No Poems Yet</h3>
               <p className="text-muted-foreground mb-6">
                 This collection is waiting for its first poem.
@@ -116,9 +115,9 @@ export default function CollectionPage() {
                   Add Poems to Collection
                 </Button>
               )}
-            </Card>
+            </div>
           ) : (
-            <div className="space-y-6">
+            <div>
               {poems.map(poem => (
                 <PoemCard key={poem.id} poem={poem} />
               ))}
