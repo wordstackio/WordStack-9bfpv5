@@ -25,21 +25,28 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const { user, error: loginError } = await login(email, password);
+    try {
+      const { user, error: loginError } = await login(email, password);
 
-    if (loginError) {
-      setError(loginError);
-      setLoading(false);
-      return;
-    }
-
-    if (user) {
-      // Redirect based on user role
-      if (user.isAdmin) {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/feed");
+      if (loginError) {
+        setError(loginError);
+        return;
       }
+
+      if (user) {
+        // Redirect based on user role
+        if (user.isAdmin) {
+          navigate("/admin/dashboard", { replace: true });
+        } else {
+          navigate("/feed", { replace: true });
+        }
+      } else {
+        setError("Login failed. Please check your credentials and try again.");
+      }
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
