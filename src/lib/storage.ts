@@ -45,6 +45,12 @@ export function clapPoem(userId: string, poemId: string): boolean {
   return true;
 }
 
+export function getPoemClaps(poemId: string): number {
+  const stored = localStorage.getItem(POEM_CLAPS_KEY);
+  const claps = stored ? JSON.parse(stored) : {};
+  return claps[poemId] || 0;
+}
+
 // Give Claps (Ink) directly to a poet (Buy Me a Coffee style)
 const POET_SUPPORTERS_KEY = "ws_poet_supporters";
 
