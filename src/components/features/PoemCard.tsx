@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { MessageCircle, Sparkles } from "lucide-react";
 import { Poem } from "@/types";
-import { formatDistanceToNow } from "date-fns";
+import { shortTimeAgo } from "@/lib/utils";
 
 interface PoemCardProps {
   poem: Poem;
@@ -42,12 +42,14 @@ export default function PoemCard({ poem, showSpotlight }: PoemCardProps) {
               className="w-8 h-8 rounded-full object-cover"
             />
           )}
-          <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            {poem.poetName}
-          </span>
-          <span className="text-muted-foreground/40 text-sm">
-            {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
-          </span>
+          <div>
+            <span className="text-sm text-muted-foreground hover:text-foreground transition-colors block">
+              {poem.poetName}
+            </span>
+            <span className="text-muted-foreground/50 text-xs">
+              {shortTimeAgo(poem.createdAt)}
+            </span>
+          </div>
         </Link>
 
         <div className="flex items-center gap-5 text-sm text-muted-foreground ml-auto">

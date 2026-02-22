@@ -7,6 +7,7 @@ import { mockPoets, mockPoems, mockCollections, mockUpdates } from "@/lib/mockDa
 import PoemCard from "@/components/features/PoemCard";
 import { getCurrentUser } from "@/lib/auth";
 import { isFollowing, followPoet, unfollowPoet, getThemePreferences } from "@/lib/storage";
+import { shortTimeAgo } from "@/lib/utils";
 import { ThemePreferences } from "@/types";
 
 export default function PoetPage() {
@@ -236,7 +237,7 @@ export default function PoetPage() {
                 </pre>
               </div>
               <div className={`flex flex-wrap items-center gap-2 sm:gap-4 mt-6 md:mt-8 pt-4 md:pt-6 border-t ${colors.border} text-xs sm:text-sm ${colors.textMuted}`}>
-                <span>{featuredPoem.createdAt}</span>
+                <span>{shortTimeAgo(featuredPoem.createdAt)}</span>
                 <span className="hidden sm:inline">{'·'}</span>
                 <span><span className="mr-1">{'👏'}</span>{featuredPoem.clapsCount} claps</span>
                 <span className="hidden sm:inline">{'·'}</span>
