@@ -658,6 +658,90 @@ export function markAllNotificationsAsRead(userId: string): void {
   localStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
 }
 
+// Poem Comments Management
+const POEM_COMMENTS_KEY = "ws_poem_comments";
+
+export function getPoemComments(poemId?: string): Comment[] {
+  const stored = localStorage.getItem(POEM_COMMENTS_KEY);
+  const all: Comment[] = stored ? JSON.parse(stored) : [];
+  if (poemId) {
+    return all.filter((c) => c.postId === poemId).sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }
+  return all;
+}
+
+export function createPoemComment(
+  poemId: string,
+  userId: string,
+  userName: string,
+  userAvatar: string | undefined,
+  content: string,
+  parentCommentId?: string
+): Comment {
+  const mentionRegex = /@(\w+)/g;
+  const mentions: string[] = [];
+  let match;
+  while ((match = mentionRegex.exec(content)) !== null) {
+    mentions.push(match[1]);
+  }
+
+  const comment: Comment = {
+    id: `pcomment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    postId: poemId,
+    userId,
+    userName,
+    userAvatar,
+    content,
+    parentCommentId,
+    mentions,
+    createdAt: new Date().toISOString(),
+    clapsCount: 0
+  };
+
+  const comments = getPoemComments();
+  comments.push(comment);
+  localStorage.setItem(POEM_COMMENTS_KEY, JSON.stringify(comments));
+
+  // Update poem comment count in published poems
+  const poems = getPublishedPoems();
+  const poem = poems.find((p) => p.id === poemId);
+  if (poem) {
+    poem.commentsCount++;
+    localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
+  }
+
+  return comment;
+}
+
+export function clapPoemComment(userId: string, commentId: string): boolean {
+  if (!useInk(userId)) return false;
+
+  const clapsKey = `ws_poem_comment_claps_${userId}`;
+  const stored = localStorage.getItem(clapsKey);
+  const claps = stored ? JSON.parse(stored) : {};
+
+  claps[commentId] = (claps[commentId] || 0) + 1;
+  localStorage.setItem(clapsKey, JSON.stringify(claps));
+
+  const comments = getPoemComments();
+  const comment = comments.find((c) => c.id === commentId);
+  if (comment) {
+    comment.clapsCount++;
+    localStorage.setItem(POEM_COMMENTS_KEY, JSON.stringify(comments));
+  }
+
+  return true;
+}
+
+export function getPoemCommentClaps(userId: string, commentId: string): number {
+  const clapsKey = `ws_poem_comment_claps_${userId}`;
+  const stored = localStorage.getItem(clapsKey);
+  const claps = stored ? JSON.parse(stored) : {};
+  return claps[commentId] || 0;
+}
+
 // Ink Wallet Management
 export interface InkTransaction {
   id: string;
