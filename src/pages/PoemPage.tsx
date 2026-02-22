@@ -4,7 +4,7 @@ import { MessageCircle, User } from "lucide-react";
 import { mockPoems, mockPoets } from "@/lib/mockData";
 import { getCurrentUser } from "@/lib/auth";
 import { clapPoem, getPoemClaps, getUserPoemClaps, canUseInk, getFreeInkUsage } from "@/lib/storage";
-import { formatDistanceToNow } from "date-fns";
+import { shortTimeAgo } from "@/lib/utils";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
 
 // Mock clapper profiles for the hover popover
@@ -120,7 +120,7 @@ export default function PoemPage() {
                 {poem.poetName}
               </p>
               <p className="text-sm text-muted-foreground">
-                {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
+                {shortTimeAgo(poem.createdAt)}
               </p>
             </div>
           </Link>
@@ -231,7 +231,7 @@ export default function PoemPage() {
                       {otherPoem.commentsCount}
                     </span>
                     <span className="ml-auto">
-                      {formatDistanceToNow(new Date(otherPoem.createdAt), { addSuffix: true })}
+                      {shortTimeAgo(otherPoem.createdAt)}
                     </span>
                   </div>
                 </Link>
