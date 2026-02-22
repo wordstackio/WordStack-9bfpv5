@@ -239,8 +239,7 @@ export default function PoemPage() {
           </div>
         </section>
       )}
-    </div>
-      
+
       {/* Out of Ink Modal */}
       {showOutOfInkModal && (
         <OutOfInkModal
