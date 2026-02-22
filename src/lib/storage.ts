@@ -45,11 +45,83 @@ export function clapPoem(userId: string, poemId: string): boolean {
   return true;
 }
 
-export function getPoemClaps(poemId: string): number {
-  const stored = localStorage.getItem(POEM_CLAPS_KEY);
-  const claps = stored ? JSON.parse(stored) : {};
-  return claps[poemId] || 0;
+// Give Claps (Ink) directly to a poet (Buy Me a Coffee style)
+const POET_SUPPORTERS_KEY = "ws_poet_supporters";
+
+export interface PoetSupport {
+  id: string;
+  fromUserId: string;
+  fromUserName: string;
+  fromUserAvatar?: string;
+  toPoetId: string;
+  amount: number;
+  message?: string;
+  createdAt: string;
 }
+
+export function getPoetSupporters(poetId: string): PoetSupport[] {
+  const stored = localStorage.getItem(POET_SUPPORTERS_KEY);
+  const all: PoetSupport[] = stored ? JSON.parse(stored) : [];
+  return all
+    .filter((s) => s.toPoetId === poetId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function giveClapsToPoet(
+  userId: string,
+  userName: string,
+  userAvatar: string | undefined,
+  poetId: string,
+  poetName: string,
+  amount: number,
+  message?: string
+): boolean {
+  // Deduct Ink from giver
+  if (!deductInkFromUser(userId, amount)) {
+    return false;
+  }
+
+  // Add Ink to poet
+  addInkToUser(poetId, amount);
+
+  // Record support
+  const support: PoetSupport = {
+    id: `support-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    fromUserId: userId,
+    fromUserName: userName,
+    fromUserAvatar: userAvatar,
+    toPoetId: poetId,
+    amount,
+    message,
+    createdAt: new Date().toISOString(),
+  };
+  const stored = localStorage.getItem(POET_SUPPORTERS_KEY);
+  const supporters: PoetSupport[] = stored ? JSON.parse(stored) : [];
+  supporters.push(support);
+  localStorage.setItem(POET_SUPPORTERS_KEY, JSON.stringify(supporters));
+
+  // Record transaction for giver
+  addInkTransaction(
+    userId,
+    "given",
+    -amount,
+    `Gave ${amount} clap${amount === 1 ? "" : "s"} to ${poetName}`,
+    poetId,
+    poetName
+  );
+
+  // Record transaction for receiver
+  addInkTransaction(
+    poetId,
+    "earned",
+    amount,
+    `Received ${amount} clap${amount === 1 ? "" : "s"} from ${userName}`,
+    userId
+  );
+
+  return true;
+}
+
 
 export function getUserPoemClaps(userId: string, poemId: string): number {
   const clapsKey = `ws_user_poem_claps_${userId}`;
