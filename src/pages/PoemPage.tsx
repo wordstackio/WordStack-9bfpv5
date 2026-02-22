@@ -88,97 +88,98 @@ export default function PoemPage() {
   return (
     <div className="min-h-screen bg-background py-12 md:py-20">
       <article className="container mx-auto px-4 max-w-2xl">
-        {/* Poet Info */}
-        <Link 
-          to={`/poet/${poem.poetId}`}
-          className="flex items-center gap-3 mb-10 group"
-        >
-          {poem.poetAvatar ? (
-            <img 
-              src={poem.poetAvatar} 
-              alt={poem.poetName}
-              className="w-11 h-11 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center">
-              <User className="w-5 h-5 text-muted-foreground" />
-            </div>
-          )}
-          <div>
-            <p className="font-medium text-foreground group-hover:text-primary transition-colors">
-              {poem.poetName}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
-            </p>
-          </div>
-        </Link>
-
         {/* Poem Title */}
         <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-10 leading-tight text-balance">
           {poem.title}
         </h1>
 
         {/* Poem Content */}
-        <div className="font-serif text-lg md:text-xl leading-loose text-foreground/85 whitespace-pre-line mb-16">
+        <div className="font-serif text-lg md:text-xl leading-loose text-foreground/85 whitespace-pre-line mb-12">
           {poem.content}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-6 py-8 border-t border-border/40">
-          {/* Clap button - icon only with count + popover */}
-          <div className="relative">
-            <button
-              ref={clapButtonRef}
-              onClick={handleClap}
-              onMouseEnter={() => setShowClappers(true)}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
-              aria-label={`Clap for this poem. ${totalClaps} claps`}
-            >
-              <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
-                {'👏'}
-              </span>
-              <span className="text-sm font-medium">
-                {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
-              </span>
-            </button>
-
-            {/* Clappers popover */}
-            {showClappers && totalClaps > 0 && (
-              <div
-                ref={clappersRef}
-                onMouseEnter={() => setShowClappers(true)}
-                onMouseLeave={() => setShowClappers(false)}
-                className="absolute bottom-full left-0 mb-2 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 p-3 animate-in fade-in-0 zoom-in-95"
-              >
-                <p className="text-xs font-medium text-muted-foreground mb-2">
-                  {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'} from {Math.min(totalClaps, mockClappers.length)} {Math.min(totalClaps, mockClappers.length) === 1 ? 'person' : 'people'}
-                </p>
-                <div className="space-y-2">
-                  {mockClappers.slice(0, Math.min(5, totalClaps)).map((clapper) => (
-                    <div key={clapper.id} className="flex items-center gap-2">
-                      <img
-                        src={clapper.avatar}
-                        alt={clapper.name}
-                        className="w-7 h-7 rounded-full object-cover"
-                      />
-                      <span className="text-sm text-foreground truncate">{clapper.name}</span>
-                    </div>
-                  ))}
-                </div>
-                {totalClaps > 5 && (
-                  <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
-                    and {totalClaps - 5} more
-                  </p>
-                )}
+        {/* Poet Info + Actions on same row */}
+        <div className="flex items-center py-8 border-t border-border/40">
+          <Link 
+            to={`/poet/${poem.poetId}`}
+            className="flex items-center gap-3 group"
+          >
+            {poem.poetAvatar ? (
+              <img 
+                src={poem.poetAvatar} 
+                alt={poem.poetName}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                <User className="w-5 h-5 text-muted-foreground" />
               </div>
             )}
-          </div>
+            <div>
+              <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                {poem.poetName}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
+              </p>
+            </div>
+          </Link>
 
-          <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-            <MessageCircle className="w-5 h-5" />
-            <span className="text-sm font-medium">{poem.commentsCount}</span>
-          </button>
+          <div className="flex items-center gap-6 ml-auto">
+            {/* Clap button */}
+            <div className="relative">
+              <button
+                ref={clapButtonRef}
+                onClick={handleClap}
+                onMouseEnter={() => setShowClappers(true)}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
+                aria-label={`Clap for this poem. ${totalClaps} claps`}
+              >
+                <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
+                  {'👏'}
+                </span>
+                <span className="text-sm font-medium">
+                  {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
+                </span>
+              </button>
+
+              {/* Clappers popover */}
+              {showClappers && totalClaps > 0 && (
+                <div
+                  ref={clappersRef}
+                  onMouseEnter={() => setShowClappers(true)}
+                  onMouseLeave={() => setShowClappers(false)}
+                  className="absolute bottom-full right-0 mb-2 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 p-3 animate-in fade-in-0 zoom-in-95"
+                >
+                  <p className="text-xs font-medium text-muted-foreground mb-2">
+                    {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'} from {Math.min(totalClaps, mockClappers.length)} {Math.min(totalClaps, mockClappers.length) === 1 ? 'person' : 'people'}
+                  </p>
+                  <div className="space-y-2">
+                    {mockClappers.slice(0, Math.min(5, totalClaps)).map((clapper) => (
+                      <div key={clapper.id} className="flex items-center gap-2">
+                        <img
+                          src={clapper.avatar}
+                          alt={clapper.name}
+                          className="w-7 h-7 rounded-full object-cover"
+                        />
+                        <span className="text-sm text-foreground truncate">{clapper.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {totalClaps > 5 && (
+                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
+                      and {totalClaps - 5} more
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">{poem.commentsCount}</span>
+            </button>
+          </div>
         </div>
       </article>
 

@@ -20,22 +20,6 @@ export default function PoemCard({ poem, showSpotlight }: PoemCardProps) {
         </div>
       )}
       
-      <Link to={`/poet/${poem.poetId}`} className="flex items-center gap-2.5 mb-5">
-        {poem.poetAvatar && (
-          <img 
-            src={poem.poetAvatar} 
-            alt={poem.poetName}
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        )}
-        <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          {poem.poetName}
-        </span>
-        <span className="text-muted-foreground/40 text-sm">
-          {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
-        </span>
-      </Link>
-      
       <Link to={`/poem/${poem.id}`} className="block group">
         <h3 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4 group-hover:text-primary transition-colors leading-snug">
           {poem.title}
@@ -49,14 +33,32 @@ export default function PoemCard({ poem, showSpotlight }: PoemCardProps) {
         </div>
       </Link>
       
-      <div className="flex items-center gap-5 text-sm text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <span className="text-base">{'👏'}</span>
-          <span>{poem.clapsCount}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <MessageCircle className="w-4 h-4" />
-          <span>{poem.commentsCount}</span>
+      <div className="flex items-center">
+        <Link to={`/poet/${poem.poetId}`} className="flex items-center gap-2.5">
+          {poem.poetAvatar && (
+            <img 
+              src={poem.poetAvatar} 
+              alt={poem.poetName}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          )}
+          <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            {poem.poetName}
+          </span>
+          <span className="text-muted-foreground/40 text-sm">
+            {formatDistanceToNow(new Date(poem.createdAt), { addSuffix: true })}
+          </span>
+        </Link>
+
+        <div className="flex items-center gap-5 text-sm text-muted-foreground ml-auto">
+          <div className="flex items-center gap-1.5">
+            <span className="text-base">{'👏'}</span>
+            <span>{poem.clapsCount}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MessageCircle className="w-4 h-4" />
+            <span>{poem.commentsCount}</span>
+          </div>
         </div>
       </div>
     </article>
