@@ -1,12 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import PoetCard from "@/components/features/PoetCard";
 import { mockPoets } from "@/lib/mockData";
+import { getCurrentUser } from "@/lib/auth";
 import { Feather, BookOpen, Users, Sparkles } from "lucide-react";
 import heroImage from "@/assets/hero-poetry.jpg";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const user = getCurrentUser();
   const featuredPoets = mockPoets.slice(0, 6);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/feed", { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <div className="overflow-x-hidden pb-20">

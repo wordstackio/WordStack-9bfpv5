@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { login } from "@/lib/auth";
+import { login, getCurrentUser } from "@/lib/auth";
 import { Loader2, AlertCircle } from "lucide-react";
 
 export default function Login() {
@@ -12,6 +12,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      navigate("/feed", { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
