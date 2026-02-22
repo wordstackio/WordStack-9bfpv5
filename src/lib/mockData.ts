@@ -1,4 +1,4 @@
-import { Poet, Poem, Update, Collection, Spotlight } from "@/types";
+import { Poet, Poem, Update, Collection, Spotlight, Comment } from "@/types";
 
 // Mock Poets
 export const mockPoets: Poet[] = [
@@ -199,6 +199,159 @@ export const mockUpdates: Update[] = [
     poetAvatar: mockPoets[2].avatar,
     content: "Hosting a small reading event next month. Details coming soon for supporters.",
     createdAt: "2024-11-19"
+  }
+];
+
+// Mock Poem Comments (seeded per poem)
+export const mockPoemComments: Comment[] = [
+  // poem-1 comments
+  {
+    id: "pc-1",
+    postId: "poem-1",
+    userId: "user-1",
+    userName: "Sarah Mitchell",
+    userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop",
+    content: "The imagery of droplets as small mirrors is stunning. This captures that exact moment between night and day so beautifully.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-20T10:30:00Z",
+    clapsCount: 12
+  },
+  {
+    id: "pc-2",
+    postId: "poem-1",
+    userId: "user-2",
+    userName: "James Thornton",
+    userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop",
+    content: "\"Waiting for the sun to decide\" -- what a perfect way to end this. The personification of the sun makes the whole poem feel alive.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-20T14:15:00Z",
+    clapsCount: 8
+  },
+  {
+    id: "pc-3",
+    postId: "poem-1",
+    userId: "user-3",
+    userName: "Priya Kapoor",
+    userAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop",
+    content: "@James Thornton Agreed, the ending lingers. It feels like the whole poem is suspended in that in-between moment.",
+    parentCommentId: "pc-2",
+    mentions: ["James"],
+    createdAt: "2024-11-20T16:45:00Z",
+    clapsCount: 4
+  },
+  {
+    id: "pc-4",
+    postId: "poem-1",
+    userId: "user-5",
+    userName: "Amara Obi",
+    userAvatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop",
+    content: "This reminds me of Bashō. Simple, precise, yet deeply resonant. More of this, please.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-21T08:20:00Z",
+    clapsCount: 15
+  },
+  // poem-2 comments
+  {
+    id: "pc-5",
+    postId: "poem-2",
+    userId: "user-4",
+    userName: "Leo Nguyen",
+    userAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+    content: "\"Trains that run on hope\" hits hard. Anyone who has taken the late-night subway knows this feeling.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-18T23:10:00Z",
+    clapsCount: 20
+  },
+  {
+    id: "pc-6",
+    postId: "poem-2",
+    userId: "user-1",
+    userName: "Sarah Mitchell",
+    userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop",
+    content: "The economy of words here is masterful. Every line earns its place.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-19T09:30:00Z",
+    clapsCount: 6
+  },
+  // poem-3 comments
+  {
+    id: "pc-7",
+    postId: "poem-3",
+    userId: "user-2",
+    userName: "James Thornton",
+    userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop",
+    content: "Aria's work always leaves me unsettled in the best way. \"The dark archive of all you left behind\" is unforgettable.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T11:00:00Z",
+    clapsCount: 18
+  },
+  {
+    id: "pc-8",
+    postId: "poem-3",
+    userId: "user-3",
+    userName: "Priya Kapoor",
+    userAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop",
+    content: "There is something almost sacred about this confession. The raven as witness, as keeper. Gorgeous.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T13:20:00Z",
+    clapsCount: 11
+  },
+  {
+    id: "pc-9",
+    postId: "poem-3",
+    userId: "user-5",
+    userName: "Amara Obi",
+    userAvatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop",
+    content: "@Priya Kapoor Yes! It reads like a gothic love letter. The tension between holding on and letting go is palpable.",
+    parentCommentId: "pc-8",
+    mentions: ["Priya"],
+    createdAt: "2024-11-22T15:45:00Z",
+    clapsCount: 7
+  },
+  // poem-4 comments
+  {
+    id: "pc-10",
+    postId: "poem-4",
+    userId: "user-4",
+    userName: "Leo Nguyen",
+    userAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+    content: "This one brought tears. The quiet inheritance of silence, the things that matter too much for words. Real.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-16T07:00:00Z",
+    clapsCount: 22
+  },
+  // poem-5 comments
+  {
+    id: "pc-11",
+    postId: "poem-5",
+    userId: "user-1",
+    userName: "Sarah Mitchell",
+    userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop",
+    content: "Marcus always finds philosophy in the most unexpected places. This is hilarious and profound at the same time.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-11T12:00:00Z",
+    clapsCount: 9
+  },
+  {
+    id: "pc-12",
+    postId: "poem-5",
+    userId: "user-3",
+    userName: "Priya Kapoor",
+    userAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop",
+    content: "\"Aren't we all?\" -- the perfect mic drop ending. I want this on a laundromat wall.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-11T18:30:00Z",
+    clapsCount: 14
   }
 ];
 

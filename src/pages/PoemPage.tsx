@@ -1,13 +1,15 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { MessageCircle, User } from "lucide-react";
-import { mockPoems, mockPoets } from "@/lib/mockData";
+import { mockPoems, mockPoets, mockPoemComments } from "@/lib/mockData";
 import { getCurrentUser } from "@/lib/auth";
-import { clapPoem, getPoemClaps, getUserPoemClaps, canUseInk, getFreeInkUsage } from "@/lib/storage";
+import { clapPoem, getPoemClaps, getUserPoemClaps, getPoemComments, canUseInk, getFreeInkUsage } from "@/lib/storage";
 import { shortTimeAgo } from "@/lib/utils";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
+import ClappersModal from "@/components/features/ClappersModal";
+import CommentsOverlay from "@/components/features/CommentsOverlay";
 
-// Mock clapper profiles for the hover popover
+// Mock clapper profiles
 const mockClappers = [
   { id: "user-1", name: "Sarah Mitchell", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop" },
   { id: "user-2", name: "James Thornton", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" },
@@ -24,28 +26,29 @@ export default function PoemPage() {
   const [localClaps, setLocalClaps] = useState(poem ? getPoemClaps(poem.id) : 0);
   const [userClaps, setUserClaps] = useState(user && poem ? getUserPoemClaps(user.id, poem.id) : 0);
   const [showOutOfInkModal, setShowOutOfInkModal] = useState(false);
-  const [showClappers, setShowClappers] = useState(false);
-  const clappersRef = useRef<HTMLDivElement>(null);
-  const clapButtonRef = useRef<HTMLButtonElement>(null);
+  const [showClappersModal, setShowClappersModal] = useState(false);
+  const [showCommentsOverlay, setShowCommentsOverlay] = useState(false);
   const [outOfInkInfo, setOutOfInkInfo] = useState<{ dailyUsed: number; monthlyUsed: number; timeUntilReset: string }>({
     dailyUsed: 0,
     monthlyUsed: 0,
     timeUntilReset: ""
   });
 
-  // Close clappers popover on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        clappersRef.current && !clappersRef.current.contains(e.target as Node) &&
-        clapButtonRef.current && !clapButtonRef.current.contains(e.target as Node)
-      ) {
-        setShowClappers(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Merge mock + user-created comments for this poem
+  const loadComments = useCallback(() => {
+    if (!poem) return [];
+    const storedComments = getPoemComments(poem.id);
+    const mockForPoem = mockPoemComments.filter((c) => c.postId === poem.id);
+    // Deduplicate: stored comments take priority by id
+    const storedIds = new Set(storedComments.map((c) => c.id));
+    return [...mockForPoem.filter((c) => !storedIds.has(c.id)), ...storedComments];
+  }, [poem]);
+
+  const [comments, setComments] = useState(loadComments);
+
+  const handleCommentAdded = () => {
+    setComments(loadComments());
+  };
 
   if (!poem) {
     return (
@@ -125,59 +128,35 @@ export default function PoemPage() {
             </div>
           </Link>
 
-          <div className="flex items-center gap-6 ml-auto">
-            {/* Clap button */}
-            <div className="relative">
-              <button
-                ref={clapButtonRef}
-                onClick={handleClap}
-                onMouseEnter={() => setShowClappers(true)}
-                className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
-                aria-label={`Clap for this poem. ${totalClaps} claps`}
-              >
-                <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
-                  {'👏'}
-                </span>
-                <span className="text-sm font-medium">
-                  {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
-                </span>
-              </button>
+          <div className="flex items-center gap-5 ml-auto">
+            {/* Clap icon -- triggers clap action */}
+            <button
+              onClick={handleClap}
+              className="text-muted-foreground hover:text-foreground transition-colors group"
+              aria-label={`Clap for this poem. ${totalClaps} claps`}
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
+                {'👏'}
+              </span>
+            </button>
 
-              {/* Clappers popover */}
-              {showClappers && totalClaps > 0 && (
-                <div
-                  ref={clappersRef}
-                  onMouseEnter={() => setShowClappers(true)}
-                  onMouseLeave={() => setShowClappers(false)}
-                  className="absolute bottom-full right-0 mb-2 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 p-3 animate-in fade-in-0 zoom-in-95"
-                >
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'} from {Math.min(totalClaps, mockClappers.length)} {Math.min(totalClaps, mockClappers.length) === 1 ? 'person' : 'people'}
-                  </p>
-                  <div className="space-y-2">
-                    {mockClappers.slice(0, Math.min(5, totalClaps)).map((clapper) => (
-                      <div key={clapper.id} className="flex items-center gap-2">
-                        <img
-                          src={clapper.avatar}
-                          alt={clapper.name}
-                          className="w-7 h-7 rounded-full object-cover"
-                        />
-                        <span className="text-sm text-foreground truncate">{clapper.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {totalClaps > 5 && (
-                    <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">
-                      and {totalClaps - 5} more
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Clap count text -- opens clappers modal */}
+            <button
+              onClick={() => setShowClappersModal(true)}
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={`View who clapped. ${totalClaps} claps`}
+            >
+              {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
+            </button>
 
-            <button className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+            {/* Comment icon -- opens comments overlay */}
+            <button
+              onClick={() => setShowCommentsOverlay(true)}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={`View comments. ${comments.length} comments`}
+            >
               <MessageCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">{poem.commentsCount}</span>
+              <span className="text-sm font-medium">{comments.length}</span>
             </button>
           </div>
         </div>
@@ -248,6 +227,25 @@ export default function PoemPage() {
           dailyUsed={outOfInkInfo.dailyUsed}
           monthlyUsed={outOfInkInfo.monthlyUsed}
           timeUntilReset={outOfInkInfo.timeUntilReset}
+        />
+      )}
+
+      {/* Clappers Modal */}
+      {showClappersModal && (
+        <ClappersModal
+          onClose={() => setShowClappersModal(false)}
+          clappers={mockClappers.slice(0, Math.min(mockClappers.length, totalClaps))}
+          totalClaps={totalClaps}
+        />
+      )}
+
+      {/* Comments Overlay */}
+      {showCommentsOverlay && (
+        <CommentsOverlay
+          poemId={poem.id}
+          comments={comments}
+          onClose={() => setShowCommentsOverlay(false)}
+          onCommentAdded={handleCommentAdded}
         />
       )}
     </div>
