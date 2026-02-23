@@ -24,6 +24,7 @@ import BecomePoet from "@/pages/BecomePoet";
 import InkWallet from "@/pages/InkWallet";
 import InkStore from "@/pages/InkStore";
 import Analytics from "@/pages/Analytics";
+import Notifications from "@/pages/Notifications";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import DevModeBanner from "@/components/features/DevModeBanner";
@@ -67,6 +68,7 @@ function AppContent() {
           <Route path="/community" element={<Community />} />
           <Route path="/poet/:id" element={<PoetPage />} />
           <Route path="/poem/:id" element={<PoemPage />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/profile/edit" element={<ProfileEdit />} />
           <Route path="/write" element={<WritePage />} />
