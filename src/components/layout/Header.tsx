@@ -96,7 +96,7 @@ export default function Header() {
           <div className="flex items-center">
             {user ? (
               <button 
-                onClick={() => navigate("/community")}
+                onClick={() => navigate("/notifications")}
                 className="relative p-2 hover:bg-accent rounded-lg transition-colors"
               >
                 <Bell className="w-5 h-5 text-muted-foreground" />
