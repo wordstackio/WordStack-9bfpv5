@@ -344,7 +344,27 @@ export default function PoetPage() {
                 <span className="mr-2">👏</span>
                 Give Claps
               </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={async () => {
+                  const shareData = {
+                    title: `${poet.name} on WordStack`,
+                    text: `Check out ${poet.name}'s poetry on WordStack`,
+                    url: window.location.href,
+                  };
+                  if (navigator.share) {
+                    try {
+                      await navigator.share(shareData);
+                    } catch {
+                      // user cancelled share sheet
+                    }
+                  } else {
+                    await navigator.clipboard.writeText(window.location.href);
+                  }
+                }}
+              >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Share this page
               </Button>
