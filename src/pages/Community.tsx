@@ -31,7 +31,7 @@ const adminBlogPosts = [
     category: "Platform Updates",
     title: "Introducing Collections: Organize Your Poetry Journey",
     readTime: "4m read",
-    image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=250&fit=crop",
+    image: "/images/covers/writing-books.jpg",
     publishedAt: "2024-11-20"
   },
   {
@@ -39,7 +39,7 @@ const adminBlogPosts = [
     category: "Writing Tips",
     title: "Finding Your Voice: A Guide for New Poets",
     readTime: "6m read",
-    image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&h=250&fit=crop",
+    image: "/images/covers/writing-desk.jpg",
     publishedAt: "2024-11-18"
   },
   {
@@ -47,7 +47,7 @@ const adminBlogPosts = [
     category: "Community",
     title: "November's Most Inked Poems: A Celebration",
     readTime: "3m read",
-    image: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=250&fit=crop",
+    image: "/images/covers/library-books.jpg",
     publishedAt: "2024-11-15"
   }
 ];
