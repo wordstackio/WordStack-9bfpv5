@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { signup } from "@/lib/auth";
-import { Loader2, AlertCircle } from "lucide-react";
+import { signup, DEV_MODE, devLogin } from "@/lib/auth";
+import { Loader2, AlertCircle, ShieldCheck, PenTool, BookOpen } from "lucide-react";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
@@ -48,6 +48,44 @@ export default function Signup() {
         <p className="text-muted-foreground mb-6">
           Create your account and start exploring poetry
         </p>
+
+        {DEV_MODE && (
+          <div className="mb-6 p-4 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50">
+            <p className="text-sm font-semibold text-amber-800 mb-3 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+              DEV MODE - Skip signup, login instantly
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2 border-purple-300 bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900"
+                onClick={() => { devLogin("admin"); navigate("/admin/dashboard", { replace: true }); }}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Login as Admin
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2 border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100 hover:text-blue-900"
+                onClick={() => { devLogin("poet"); navigate("/feed", { replace: true }); }}
+              >
+                <PenTool className="w-4 h-4" />
+                Login as Poet
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2 border-green-300 bg-green-50 text-green-800 hover:bg-green-100 hover:text-green-900"
+                onClick={() => { devLogin("reader"); navigate("/feed", { replace: true }); }}
+              >
+                <BookOpen className="w-4 h-4" />
+                Login as Reader
+              </Button>
+            </div>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
