@@ -9,6 +9,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { isFollowing, followPoet, unfollowPoet, getThemePreferences } from "@/lib/storage";
 import { shortTimeAgo } from "@/lib/utils";
 import { ThemePreferences } from "@/types";
+import GiveClapsOverlay from "@/components/features/GiveClapsOverlay";
 
 export default function PoetPage() {
   const { id } = useParams();
@@ -18,6 +19,7 @@ export default function PoetPage() {
   const [following, setFollowing] = useState(poet ? isFollowing(poet.id) : false);
   const [filterCollection, setFilterCollection] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemePreferences | null>(null);
+  const [showGiveClaps, setShowGiveClaps] = useState(false);
 
   useEffect(() => {
     if (poet) {
@@ -155,7 +157,7 @@ export default function PoetPage() {
               >
                 {following ? "Following" : "Follow"}
               </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto" onClick={() => setShowGiveClaps(true)}>
                 <span className="mr-2">👏</span>
                 Give Claps
               </Button>
@@ -338,11 +340,31 @@ export default function PoetPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4 mb-6 md:mb-8 max-w-md sm:max-w-none mx-auto">
-              <Button size="lg" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto" onClick={() => setShowGiveClaps(true)}>
                 <span className="mr-2">👏</span>
                 Give Claps
               </Button>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={async () => {
+                  const shareData = {
+                    title: `${poet.name} on WordStack`,
+                    text: `Check out ${poet.name}'s poetry on WordStack`,
+                    url: window.location.href,
+                  };
+                  if (navigator.share) {
+                    try {
+                      await navigator.share(shareData);
+                    } catch {
+                      // user cancelled share sheet
+                    }
+                  } else {
+                    await navigator.clipboard.writeText(window.location.href);
+                  }
+                }}
+              >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Share this page
               </Button>
@@ -377,6 +399,16 @@ export default function PoetPage() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Give Claps Overlay */}
+      {showGiveClaps && (
+        <GiveClapsOverlay
+          poetId={poet.id}
+          poetName={poet.name}
+          poetAvatar={poet.avatar}
+          onClose={() => setShowGiveClaps(false)}
+        />
       )}
 
       {/* 7. About Section */}
