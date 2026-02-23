@@ -346,6 +346,12 @@ export function getUserPoemClaps(userId: string, poemId: string): number {
   return claps[poemId] || 0;
 }
 
+export function getPoemClaps(poemId: string): number {
+  const stored = localStorage.getItem(POEM_CLAPS_KEY);
+  const claps = stored ? JSON.parse(stored) : {};
+  return claps[poemId] || 0;
+}
+
 // Onboarding Progress
 interface OnboardingProgress {
   step: number;
