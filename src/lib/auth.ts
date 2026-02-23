@@ -3,6 +3,61 @@ import { supabase } from "./supabase";
 
 const STORAGE_KEY = "wordstack_user";
 
+// ──────────────────────────────────────────────
+// DEV MODE: Pre-configured test accounts
+// Set VITE_DEV_MODE=true in .env to enable
+// ──────────────────────────────────────────────
+export const DEV_MODE = import.meta.env.VITE_DEV_MODE === "true";
+
+export const DEV_USERS: Record<string, User> = {
+  admin: {
+    id: "dev-admin-001",
+    name: "Dev Admin",
+    bio: "WordStack Administrator (Dev Mode)",
+    isPoet: true,
+    isAdmin: true,
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop",
+    followersCount: 999,
+    createdAt: "2024-01-01",
+    bannerImage: undefined,
+    customUrl: "dev-admin",
+    socialLinks: {},
+  },
+  poet: {
+    id: "dev-poet-001",
+    name: "Dev Poet",
+    bio: "Writing verses in development (Dev Mode)",
+    isPoet: true,
+    isAdmin: false,
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
+    followersCount: 150,
+    createdAt: "2024-02-01",
+    bannerImage: undefined,
+    customUrl: "dev-poet",
+    socialLinks: {},
+  },
+  reader: {
+    id: "dev-reader-001",
+    name: "Dev Reader",
+    bio: "Discovering poetry in development (Dev Mode)",
+    isPoet: false,
+    isAdmin: false,
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop",
+    followersCount: 10,
+    createdAt: "2024-03-01",
+    bannerImage: undefined,
+    customUrl: "dev-reader",
+    socialLinks: {},
+  },
+};
+
+// Dev mode login: bypass Supabase entirely
+export const devLogin = (role: "admin" | "poet" | "reader"): User => {
+  const user = DEV_USERS[role];
+  setCurrentUser(user);
+  return user;
+};
+
 // Session management
 export const getCurrentUser = (): User | null => {
   const stored = localStorage.getItem(STORAGE_KEY);
@@ -156,12 +211,20 @@ export const login = async (
 
 // Logout
 export const logout = async () => {
-  await supabase.auth.signOut();
+  if (!DEV_MODE) {
+    await supabase.auth.signOut();
+  }
   clearCurrentUser();
 };
 
 // Check and restore session on app load
 export const restoreSession = async (): Promise<User | null> => {
+  // In dev mode, just restore from localStorage (no Supabase session needed)
+  if (DEV_MODE) {
+    const stored = getCurrentUser();
+    return stored;
+  }
+
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session?.user) {

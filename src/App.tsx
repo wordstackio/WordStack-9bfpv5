@@ -26,6 +26,7 @@ import InkStore from "@/pages/InkStore";
 import Analytics from "@/pages/Analytics";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
+import DevModeBanner from "@/components/features/DevModeBanner";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -81,6 +82,7 @@ function AppContent() {
         </Routes>
         {!isAdminRoute && <BottomNav />}
         {!isAdminRoute && <FAB />}
+        <DevModeBanner />
       </div>
   );
 }

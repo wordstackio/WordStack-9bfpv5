@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { login, getCurrentUser } from "@/lib/auth";
-import { Loader2, AlertCircle } from "lucide-react";
+import { login, getCurrentUser, DEV_MODE, devLogin } from "@/lib/auth";
+import { Loader2, AlertCircle, ShieldCheck, PenTool, BookOpen } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -55,6 +55,15 @@ export default function Login() {
     }
   };
 
+  const handleDevLogin = (role: "admin" | "poet" | "reader") => {
+    const user = devLogin(role);
+    if (user.isAdmin) {
+      navigate("/admin/dashboard", { replace: true });
+    } else {
+      navigate("/feed", { replace: true });
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-12 bg-muted/30">
       <Card className="w-full max-w-md p-8">
@@ -64,6 +73,44 @@ export default function Login() {
         <p className="text-muted-foreground mb-6">
           Log in to continue your poetry journey
         </p>
+
+        {DEV_MODE && (
+          <div className="mb-6 p-4 rounded-lg border-2 border-dashed border-amber-400 bg-amber-50">
+            <p className="text-sm font-semibold text-amber-800 mb-3 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+              DEV MODE - Quick Login
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2 border-purple-300 bg-purple-50 text-purple-800 hover:bg-purple-100 hover:text-purple-900"
+                onClick={() => handleDevLogin("admin")}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Login as Admin (full access)
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2 border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100 hover:text-blue-900"
+                onClick={() => handleDevLogin("poet")}
+              >
+                <PenTool className="w-4 h-4" />
+                Login as Poet (write + read)
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-start gap-2 border-green-300 bg-green-50 text-green-800 hover:bg-green-100 hover:text-green-900"
+                onClick={() => handleDevLogin("reader")}
+              >
+                <BookOpen className="w-4 h-4" />
+                Login as Reader (read only)
+              </Button>
+            </div>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

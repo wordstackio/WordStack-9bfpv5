@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getCurrentUser, login } from "@/lib/auth";
+import { getCurrentUser, login, DEV_MODE, devLogin } from "@/lib/auth";
 import { ShieldCheck, Lock, User } from "lucide-react";
 
 export default function AdminLogin() {
@@ -70,6 +70,28 @@ export default function AdminLogin() {
               WordStack Administration
             </p>
           </div>
+
+          {/* Dev Mode Quick Login */}
+          {DEV_MODE && (
+            <div className="mb-6 p-4 rounded-lg border-2 border-dashed border-amber-400/40 bg-amber-500/10">
+              <p className="text-sm font-semibold text-amber-300 mb-3 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
+                DEV MODE - Quick Admin Login
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-center gap-2 border-purple-500/40 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200"
+                onClick={() => {
+                  devLogin("admin");
+                  navigate("/admin/dashboard");
+                }}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Login as Dev Admin
+              </Button>
+            </div>
+          )}
 
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-5">
