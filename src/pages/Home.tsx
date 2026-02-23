@@ -14,7 +14,7 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      navigate("/feed", { replace: true });
+      navigate(user.isAdmin ? "/admin/dashboard" : "/feed", { replace: true });
     }
   }, [user, navigate]);
 
