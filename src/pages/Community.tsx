@@ -17,13 +17,40 @@ import {
   createComment,
   clapComment,
   getCommentClaps,
-  getUnreadNotificationsCount,
-  getCarouselPosts
+  getUnreadNotificationsCount
 } from "@/lib/storage";
-import { CommunityPost, Comment, BlogPost } from "@/types";
+import { CommunityPost, Comment } from "@/types";
 import { Users, MessageCircle, Send, X, Feather, Clock, ChevronDown, ChevronLeft, ChevronRight, Reply, Bell } from "lucide-react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
+
+// Mock admin blog posts
+const adminBlogPosts = [
+  {
+    id: "blog-1",
+    category: "Platform Updates",
+    title: "Introducing Collections: Organize Your Poetry Journey",
+    readTime: "4m read",
+    image: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=400&h=250&fit=crop",
+    publishedAt: "2024-11-20"
+  },
+  {
+    id: "blog-2",
+    category: "Writing Tips",
+    title: "Finding Your Voice: A Guide for New Poets",
+    readTime: "6m read",
+    image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&h=250&fit=crop",
+    publishedAt: "2024-11-18"
+  },
+  {
+    id: "blog-3",
+    category: "Community",
+    title: "November's Most Inked Poems: A Celebration",
+    readTime: "3m read",
+    image: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=400&h=250&fit=crop",
+    publishedAt: "2024-11-15"
+  }
+];
 
 export default function Community() {
   const navigate = useNavigate();
@@ -41,7 +68,6 @@ export default function Community() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [carouselPosts, setCarouselPosts] = useState<BlogPost[]>([]);
   const [showOutOfInkModal, setShowOutOfInkModal] = useState(false);
   const [outOfInkInfo, setOutOfInkInfo] = useState<{ dailyUsed: number; monthlyUsed: number; timeUntilReset: string }>(
     { dailyUsed: 0, monthlyUsed: 0, timeUntilReset: "" }
@@ -61,7 +87,6 @@ export default function Community() {
 
     loadPosts();
     loadNotifications();
-    setCarouselPosts(getCarouselPosts());
 
     // Poll for new notifications every 10 seconds
     const interval = setInterval(loadNotifications, 10000);
@@ -128,11 +153,11 @@ export default function Community() {
   };
 
   const handlePrevSlide = () => {
-    setCurrentSlide(prev => (prev === 0 ? carouselPosts.length - 1 : prev - 1));
+    setCurrentSlide(prev => (prev === 0 ? adminBlogPosts.length - 1 : prev - 1));
   };
 
   const handleNextSlide = () => {
-    setCurrentSlide(prev => (prev === carouselPosts.length - 1 ? 0 : prev + 1));
+    setCurrentSlide(prev => (prev === adminBlogPosts.length - 1 ? 0 : prev + 1));
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -291,7 +316,6 @@ export default function Community() {
     <div className="min-h-screen bg-background pb-20">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Admin Blog Posts Carousel */}
-        {carouselPosts.length > 0 && (
         <div className="mb-8 relative">
           <div 
             ref={carouselRef}
@@ -304,13 +328,13 @@ export default function Community() {
               className="flex transition-transform duration-300 ease-out"
               style={{ transform: `translateX(-${currentSlide * 100}%)` }}
             >
-              {carouselPosts.map((post) => (
+              {adminBlogPosts.map((post) => (
                 <div key={post.id} className="w-full flex-shrink-0 px-1">
-                  <Link to={`/blog/${post.slug}`}>
+                  <Link to={`/blog/${post.id}`}>
                     <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
                       <div className="flex items-center gap-4 p-3">
                       <img
-                        src={post.coverImage}
+                        src={post.image}
                         alt={post.title}
                         className="w-20 h-20 object-cover rounded flex-shrink-0"
                       />
@@ -338,29 +362,24 @@ export default function Community() {
           </div>
 
           {/* Navigation Buttons */}
-          {carouselPosts.length > 1 && (
-            <>
-              <button
-                onClick={handlePrevSlide}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-8 h-8 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-colors z-10"
-                aria-label="Previous slide"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleNextSlide}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-8 h-8 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-colors z-10"
-                aria-label="Next slide"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </>
-          )}
+          <button
+            onClick={handlePrevSlide}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-8 h-8 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-colors z-10"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={handleNextSlide}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-8 h-8 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-colors z-10"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
 
           {/* Dots Indicator */}
-          {carouselPosts.length > 1 && (
           <div className="flex items-center justify-center gap-2 mt-4">
-            {carouselPosts.map((_, index) => (
+            {adminBlogPosts.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentSlide(index)}
@@ -373,9 +392,7 @@ export default function Community() {
               />
             ))}
           </div>
-          )}
         </div>
-        )}
 
         {/* Filter and Notifications */}
         <div className="mb-6 flex items-center justify-between">
