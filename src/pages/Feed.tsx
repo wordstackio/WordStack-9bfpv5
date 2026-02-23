@@ -2,9 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import PoemCard from "@/components/features/PoemCard";
-import PoetCard from "@/components/features/PoetCard";
 import { getCurrentUser } from "@/lib/auth";
-import { mockPoems, mockPoets } from "@/lib/mockData";
+import { mockPoems } from "@/lib/mockData";
 import { getFollows, getPublishedPoems } from "@/lib/storage";
 import { Poem } from "@/types";
 import { Feather, Heart, Users, Clock } from "lucide-react";
@@ -52,7 +51,6 @@ export default function Feed() {
   };
 
   const filteredPoems = getFilteredPoems();
-  const suggestedPoets = mockPoets.filter(poet => !followedPoetIds.includes(poet.id)).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
@@ -158,17 +156,7 @@ export default function Feed() {
           )}
         </section>
 
-        {/* Suggested Poets */}
-        {suggestedPoets.length > 0 && (
-          <section>
-            <h2 className="font-serif text-2xl font-bold mb-6">Discover Poets</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {suggestedPoets.map(poet => (
-                <PoetCard key={poet.id} poet={poet} />
-              ))}
-            </div>
-          </section>
-        )}
+
       </div>
     </div>
   );
