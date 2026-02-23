@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import PoetCard from "@/components/features/PoetCard";
 import { mockPoets, mockPoems } from "@/lib/mockData";
+import { getHiddenProfiles } from "@/lib/storage";
 import { Poet } from "@/types";
 
 type SortOption = "trending" | "newest" | "most-followed" | "most-poems";
@@ -65,15 +66,21 @@ export default function Explore() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  // Filter out hidden profiles
+  const visiblePoets = useMemo(() => {
+    const hiddenIds = getHiddenProfiles();
+    return mockPoets.filter(p => !hiddenIds.includes(p.id));
+  }, []);
+
   // Curated sections
-  const trending = useMemo(() => getTrendingPoets(mockPoets), []);
-  const hiddenGems = useMemo(() => getHiddenGems(mockPoets), []);
-  const fastestGrowing = useMemo(() => getFastestGrowing(mockPoets), []);
-  const newVoices = useMemo(() => getNewVoices(mockPoets), []);
+  const trending = useMemo(() => getTrendingPoets(visiblePoets), [visiblePoets]);
+  const hiddenGems = useMemo(() => getHiddenGems(visiblePoets), [visiblePoets]);
+  const fastestGrowing = useMemo(() => getFastestGrowing(visiblePoets), [visiblePoets]);
+  const newVoices = useMemo(() => getNewVoices(visiblePoets), [visiblePoets]);
 
   // Filtered + sorted "All poets"
   const filteredPoets = useMemo(() => {
-    let result = [...mockPoets];
+    let result = [...visiblePoets];
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -103,9 +110,10 @@ export default function Explore() {
   const isSearching = searchQuery.trim().length > 0;
 
   const handleSurpriseMe = useCallback(() => {
-    const randomPoet = mockPoets[Math.floor(Math.random() * mockPoets.length)];
+    if (visiblePoets.length === 0) return;
+    const randomPoet = visiblePoets[Math.floor(Math.random() * visiblePoets.length)];
     navigate(`/poet/${randomPoet.id}`);
-  }, [navigate]);
+  }, [navigate, visiblePoets]);
 
   return (
     <div className="min-h-screen bg-background">

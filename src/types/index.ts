@@ -14,6 +14,7 @@ export interface User {
     instagram?: string;
     website?: string;
   };
+  profileHidden?: boolean;
 }
 
 export interface Poet extends User {
@@ -154,6 +155,15 @@ export interface BlogPost {
   metaDescription: string;
   metaKeywords: string;
   ogImage: string;
+}
+
+export interface AccountDeletionRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  reason: string;
+  createdAt: string;
 }
 
 export interface FreeInkUsage {

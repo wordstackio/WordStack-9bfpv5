@@ -211,6 +211,32 @@ export const upgradeToPoet = async (userId: string): Promise<User | null> => {
   }
 };
 
+// Delete account
+export const deleteAccount = async (): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const user = getCurrentUser();
+    if (!user) return { success: false, error: "No user logged in" };
+
+    // Delete the profile from Supabase
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', user.id);
+
+    if (profileError) {
+      console.error('Profile deletion error:', profileError);
+    }
+
+    // Sign out
+    await supabase.auth.signOut();
+    clearCurrentUser();
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Account deletion failed' };
+  }
+};
+
 // Legacy functions for backward compatibility
 export const mockLogin = async (email: string): Promise<User | null> => {
   return (await login(email, 'password123')).user;

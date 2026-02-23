@@ -25,11 +25,13 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
-  Search as SearchIcon
+  Search as SearchIcon,
+  DoorOpen,
+  X
 } from "lucide-react";
 import { mockPoets, mockPoems } from "@/lib/mockData";
-import { getCommunityPosts, getBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost } from "@/lib/storage";
-import { BlogPost } from "@/types";
+import { getCommunityPosts, getBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, getAccountDeletionRequests, dismissDeletionRequest } from "@/lib/storage";
+import { BlogPost, AccountDeletionRequest } from "@/types";
 
 function generateSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -57,7 +59,7 @@ const EMPTY_FORM: Omit<BlogPost, "id" | "createdAt" | "updatedAt"> = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const [activeTab, setActiveTab] = useState<"overview" | "users" | "content" | "blog" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "users" | "content" | "blog" | "leaving" | "settings">("overview");
 
   // Blog management state
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -66,6 +68,7 @@ export default function AdminDashboard() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [showSeo, setShowSeo] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deletionRequests, setDeletionRequests] = useState<AccountDeletionRequest[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -79,6 +82,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadBlogPosts();
+    setDeletionRequests(getAccountDeletionRequests());
   }, []);
 
   const loadBlogPosts = () => {
@@ -224,6 +228,7 @@ export default function AdminDashboard() {
             { key: "users", label: "Users & Poets", icon: Users },
             { key: "content", label: "Content", icon: FileText },
             { key: "blog", label: "Blog", icon: BookOpen },
+            { key: "leaving", label: "Leaving WordStack", icon: DoorOpen },
             { key: "settings", label: "Settings", icon: Settings },
           ] as const).map(tab => (
             <Button
@@ -742,6 +747,86 @@ export default function AdminDashboard() {
                 </div>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* Leaving WordStack Tab */}
+        {activeTab === "leaving" && (
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <DoorOpen className="w-5 h-5 text-gray-700" />
+                  Account Deletion Requests
+                  {deletionRequests.length > 0 && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                      {deletionRequests.length}
+                    </span>
+                  )}
+                </h3>
+              </div>
+
+              {deletionRequests.length === 0 ? (
+                <div className="text-center py-12">
+                  <DoorOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 mb-1">No deletion requests</p>
+                  <p className="text-sm text-gray-400">
+                    When poets delete their accounts, their feedback will appear here.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {deletionRequests.map((req) => (
+                    <div
+                      key={req.id}
+                      className="p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <p className="font-semibold text-gray-900">
+                              {req.userName}
+                            </p>
+                            <span className="text-xs text-gray-400">
+                              {new Date(req.createdAt).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-100 rounded p-3 mb-2">
+                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                              Reason for leaving
+                            </p>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                              {req.reason}
+                            </p>
+                          </div>
+                          <p className="text-xs text-gray-400">
+                            User ID: {req.userId}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                          onClick={() => {
+                            dismissDeletionRequest(req.id);
+                            setDeletionRequests(getAccountDeletionRequests());
+                          }}
+                          title="Dismiss"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           </div>
         )}
 

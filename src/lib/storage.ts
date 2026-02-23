@@ -903,6 +903,100 @@ export function addInkTransaction(
   localStorage.setItem(INK_TRANSACTIONS_KEY, JSON.stringify(transactions));
 }
 
+// Hidden Profiles
+const HIDDEN_PROFILES_KEY = "ws_hidden_profiles";
+
+export function getHiddenProfiles(): string[] {
+  const stored = localStorage.getItem(HIDDEN_PROFILES_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function setProfileHidden(poetId: string, hidden: boolean): void {
+  const hiddenList = getHiddenProfiles();
+  if (hidden && !hiddenList.includes(poetId)) {
+    hiddenList.push(poetId);
+  } else if (!hidden) {
+    const index = hiddenList.indexOf(poetId);
+    if (index > -1) hiddenList.splice(index, 1);
+  }
+  localStorage.setItem(HIDDEN_PROFILES_KEY, JSON.stringify(hiddenList));
+
+  // Also update the stored user object
+  const currentUser = JSON.parse(localStorage.getItem("wordstack_user") || "{}");
+  if (currentUser.id === poetId) {
+    currentUser.profileHidden = hidden;
+    localStorage.setItem("wordstack_user", JSON.stringify(currentUser));
+  }
+}
+
+export function isProfileHidden(poetId: string): boolean {
+  return getHiddenProfiles().includes(poetId);
+}
+
+// Account Deletion Requests
+import { AccountDeletionRequest } from "@/types";
+
+const DELETION_REQUESTS_KEY = "ws_deletion_requests";
+
+export function getAccountDeletionRequests(): AccountDeletionRequest[] {
+  const stored = localStorage.getItem(DELETION_REQUESTS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function createAccountDeletionRequest(userId: string, userName: string, reason: string, userEmail?: string): AccountDeletionRequest {
+  const request: AccountDeletionRequest = {
+    id: `del-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+    userId,
+    userName,
+    userEmail,
+    reason,
+    createdAt: new Date().toISOString(),
+  };
+  const requests = getAccountDeletionRequests();
+  requests.unshift(request);
+  localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(requests));
+  return request;
+}
+
+export function dismissDeletionRequest(id: string): void {
+  const requests = getAccountDeletionRequests().filter(r => r.id !== id);
+  localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(requests));
+}
+
+// Export Poet Data
+export function exportPoetData(poetId: string, poetName: string): string {
+  const poems = getPublishedPoems().filter(p => p.poetId === poetId);
+  const drafts = getDrafts(poetId);
+  const collections = getCollections(poetId);
+
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    poet: { id: poetId, name: poetName },
+    publishedPoems: poems.map(p => ({
+      title: p.title,
+      content: p.content,
+      createdAt: p.createdAt,
+      clapsCount: p.clapsCount,
+      commentsCount: p.commentsCount,
+    })),
+    drafts: drafts.map(d => ({
+      title: d.title,
+      content: d.content,
+      lastSaved: d.lastSaved,
+    })),
+    collections: collections.map(c => ({
+      name: c.name,
+      description: c.description,
+      poemCount: c.poemIds.length,
+    })),
+    totalPublished: poems.length,
+    totalDrafts: drafts.length,
+    totalCollections: collections.length,
+  };
+
+  return JSON.stringify(exportData, null, 2);
+}
+
 // Blog Post Management
 import { BlogPost } from "@/types";
 
