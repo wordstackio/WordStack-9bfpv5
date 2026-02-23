@@ -129,55 +129,53 @@ export default function InkStore() {
           </div>
         </Card>
 
-        {/* Desktop: Single Row Scrollable / Grid Hybrid */}
-        {/* Mobile: Stacked Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        {/* Compact Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {inkPackages.map((pkg) => (
             <div key={pkg.id} className="relative">
               {pkg.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" />
-                    <span>Most Popular</span>
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
+                  <div className="bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-md flex items-center gap-1">
+                    <Sparkles className="w-2.5 h-2.5" />
+                    <span>Popular</span>
                   </div>
                 </div>
               )}
-              
-              <Card 
+
+              <Card
                 onClick={() => handlePurchase(pkg)}
-                className={`cursor-pointer transition-all duration-300 overflow-hidden h-full ${
-                  pkg.popular 
-                    ? "ring-2 ring-amber-500 shadow-xl hover:shadow-2xl hover:scale-105" 
-                    : "hover:shadow-xl hover:scale-105"
+                className={`cursor-pointer transition-all duration-200 overflow-hidden h-full ${
+                  pkg.popular
+                    ? "ring-2 ring-primary shadow-md hover:shadow-lg hover:scale-[1.03]"
+                    : "hover:shadow-md hover:scale-[1.03]"
                 } ${selectedPackage === pkg.id ? "ring-2 ring-primary" : ""}`}
               >
-                <div className="relative">
-                  <img 
-                    src={pkg.image} 
+                {/* Image -- constrained height */}
+                <div className="relative aspect-[4/5] overflow-hidden">
+                  <img
+                    src={pkg.image}
                     alt={pkg.name}
-                    className="w-full h-auto object-contain"
+                    className="w-full h-full object-cover"
                   />
-                  
-                  {/* Overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
-                    <Button 
-                      size="lg" 
-                      className="font-bold shadow-xl"
-                      disabled={selectedPackage === pkg.id}
-                    >
-                      {selectedPackage === pkg.id ? (
-                        <>
-                          <Lock className="w-4 h-4 mr-2 animate-pulse" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingCart className="w-4 h-4 mr-2" />
-                          Buy Now ${pkg.price.toFixed(2)}
-                        </>
-                      )}
-                    </Button>
+                </div>
+
+                {/* Details */}
+                <div className="p-2.5">
+                  <h3 className="font-semibold text-xs leading-tight truncate">{pkg.name}</h3>
+                  <p className="text-[10px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">{pkg.description}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs font-bold text-primary">{pkg.inkAmount.toLocaleString()} INK</span>
+                    {pkg.bonusInk && (
+                      <span className="text-[10px] font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full">+{pkg.bonusInk}</span>
+                    )}
                   </div>
+                  <Button
+                    size="sm"
+                    className="w-full mt-2 h-7 text-xs font-semibold"
+                    disabled={selectedPackage === pkg.id}
+                  >
+                    {selectedPackage === pkg.id ? "Processing..." : `$${pkg.price.toFixed(2)}`}
+                  </Button>
                 </div>
               </Card>
             </div>
