@@ -14,7 +14,6 @@ export interface User {
     instagram?: string;
     website?: string;
   };
-  profileHidden?: boolean;
 }
 
 export interface Poet extends User {
@@ -135,6 +134,14 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface FreeInkUsage {
+  userId: string;
+  dailyUsed: number;
+  monthlyUsed: number;
+  lastDailyReset: string;
+  lastMonthlyReset: string;
+}
+
 export interface BlogPost {
   id: string;
   title: string;
@@ -146,8 +153,8 @@ export interface BlogPost {
   author: string;
   authorAvatar?: string;
   publishedAt: string;
-  updatedAt: string;
   createdAt: string;
+  updatedAt: string;
   status: "draft" | "published";
   showInCarousel: boolean;
   readTime: string;
@@ -161,15 +168,6 @@ export interface AccountDeletionRequest {
   id: string;
   userId: string;
   userName: string;
-  userEmail?: string;
   reason: string;
   createdAt: string;
-}
-
-export interface FreeInkUsage {
-  userId: string;
-  dailyUsed: number;
-  monthlyUsed: number;
-  lastDailyReset: string;
-  lastMonthlyReset: string;
 }

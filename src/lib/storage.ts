@@ -1,5 +1,4 @@
 // Mock storage for follows, ink, etc.
-import type { AccountDeletionRequest, BlogPost } from "@/types";
 
 const FOLLOWS_KEY = "wordstack_follows";
 const POEM_CLAPS_KEY = "ws_poem_claps";
@@ -46,220 +45,11 @@ export function clapPoem(userId: string, poemId: string): boolean {
   return true;
 }
 
-// Hidden Profiles
-const HIDDEN_PROFILES_KEY = "ws_hidden_profiles";
-
-export function getHiddenProfiles(): string[] {
-  const stored = localStorage.getItem(HIDDEN_PROFILES_KEY);
-  return stored ? JSON.parse(stored) : [];
+export function getPoemClaps(poemId: string): number {
+  const stored = localStorage.getItem(POEM_CLAPS_KEY);
+  const claps = stored ? JSON.parse(stored) : {};
+  return claps[poemId] || 0;
 }
-
-export function setProfileHidden(poetId: string, hidden: boolean): void {
-  const hiddenList = getHiddenProfiles();
-  if (hidden && !hiddenList.includes(poetId)) {
-    hiddenList.push(poetId);
-  } else if (!hidden) {
-    const index = hiddenList.indexOf(poetId);
-    if (index > -1) hiddenList.splice(index, 1);
-  }
-  localStorage.setItem(HIDDEN_PROFILES_KEY, JSON.stringify(hiddenList));
-  const currentUser = JSON.parse(localStorage.getItem("wordstack_user") || "{}");
-  if (currentUser.id === poetId) {
-    currentUser.profileHidden = hidden;
-    localStorage.setItem("wordstack_user", JSON.stringify(currentUser));
-  }
-}
-
-export function isProfileHidden(poetId: string): boolean {
-  return getHiddenProfiles().includes(poetId);
-}
-
-// Account Deletion Requests
-const DELETION_REQUESTS_KEY = "ws_deletion_requests";
-
-export function getAccountDeletionRequests(): AccountDeletionRequest[] {
-  const stored = localStorage.getItem(DELETION_REQUESTS_KEY);
-  return stored ? JSON.parse(stored) : [];
-}
-
-export function createAccountDeletionRequest(userId: string, userName: string, reason: string, userEmail?: string): AccountDeletionRequest {
-  const request: AccountDeletionRequest = {
-    id: `del-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-    userId,
-    userName,
-    userEmail,
-    reason,
-    createdAt: new Date().toISOString(),
-  };
-  const requests = getAccountDeletionRequests();
-  requests.unshift(request);
-  localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(requests));
-  return request;
-}
-
-export function dismissDeletionRequest(id: string): void {
-  const requests = getAccountDeletionRequests().filter(r => r.id !== id);
-  localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(requests));
-}
-
-// Export Poet Data
-export function exportPoetData(poetId: string, poetName: string): string {
-  const poems = getPublishedPoems().filter(p => p.poetId === poetId);
-  const drafts = getDrafts(poetId);
-  const collections = getCollections(poetId);
-  const exportData = {
-    exportedAt: new Date().toISOString(),
-    poet: { id: poetId, name: poetName },
-    publishedPoems: poems.map(p => ({
-      title: p.title,
-      content: p.content,
-      createdAt: p.createdAt,
-      clapsCount: p.clapsCount,
-      commentsCount: p.commentsCount,
-    })),
-    drafts: drafts.map(d => ({
-      title: d.title,
-      content: d.content,
-      lastSaved: d.lastSaved,
-    })),
-    collections: collections.map(c => ({
-      name: c.name,
-      description: c.description,
-      poemCount: c.poemIds.length,
-    })),
-    totalPublished: poems.length,
-    totalDrafts: drafts.length,
-    totalCollections: collections.length,
-  };
-  return JSON.stringify(exportData, null, 2);
-}
-
-// Blog Post Management
-const BLOG_POSTS_KEY = "ws_blog_posts";
-
-function generateSlug(title: string): string {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
-
-function seedBlogPosts(): BlogPost[] {
-  const seeds: BlogPost[] = [
-    {
-      id: "blog-1",
-      title: "Introducing Collections: Organize Your Poetry Journey",
-      slug: "introducing-collections",
-      excerpt: "We're excited to announce Collections, a powerful new way to organize and showcase your poetry on WordStack.",
-      content: "We're thrilled to introduce Collections -- a feature that many of you have been asking for.\n\n## Why Collections Matter\n\nAs a poet, your work evolves. Collections give you the power to organize your poetry in meaningful ways.\n\n## How to Get Started\n\n1. Navigate to your Collections page\n2. Click \"Create New Collection\"\n3. Add poems from your library\n\n-- The WordStack Team",
-      category: "Platform Updates",
-      coverImage: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200&h=600&fit=crop",
-      author: "WordStack Team",
-      publishedAt: "2024-11-20T00:00:00.000Z",
-      updatedAt: "2024-11-20T00:00:00.000Z",
-      createdAt: "2024-11-20T00:00:00.000Z",
-      status: "published",
-      showInCarousel: true,
-      readTime: "4m read",
-      metaTitle: "Introducing Collections | WordStack Blog",
-      metaDescription: "Discover how WordStack Collections helps poets organize and showcase their poetry.",
-      metaKeywords: "poetry, collections, organize, wordstack",
-      ogImage: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200&h=600&fit=crop"
-    },
-    {
-      id: "blog-2",
-      title: "Finding Your Voice: A Guide for New Poets",
-      slug: "finding-your-voice",
-      excerpt: "Every poet's journey begins with a question: What do I have to say? Here's how to discover your unique poetic voice.",
-      content: "Every poet starts somewhere. Finding your voice isn't about forcing originality -- it's about learning to listen.\n\n## Start With What Moves You\n\nWrite about what keeps you up at night, what makes you stop mid-step.\n\n## Read Widely, But Don't Imitate\n\nReading other poets is essential. But the goal is to learn from them while discovering what only you can say.\n\n## Your Voice Will Evolve\n\nStart where you are. Write what matters. Trust the process.\n\n-- Sarah Chen, Contributing Poet",
-      category: "Writing Tips",
-      coverImage: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&h=600&fit=crop",
-      author: "Sarah Chen",
-      publishedAt: "2024-11-18T00:00:00.000Z",
-      updatedAt: "2024-11-18T00:00:00.000Z",
-      createdAt: "2024-11-18T00:00:00.000Z",
-      status: "published",
-      showInCarousel: true,
-      readTime: "6m read",
-      metaTitle: "Finding Your Voice: A Guide for New Poets | WordStack Blog",
-      metaDescription: "A practical guide for new poets on discovering their unique poetic voice.",
-      metaKeywords: "poetry, writing tips, voice, new poets",
-      ogImage: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&h=600&fit=crop"
-    },
-    {
-      id: "blog-3",
-      title: "November's Most Inked Poems: A Celebration",
-      slug: "november-most-inked-poems",
-      excerpt: "This month, our community came together to support incredible poetry. Here are the poems that resonated most deeply.",
-      content: "November has been an extraordinary month on WordStack.\n\n## The Power of Community Support\n\nThousands of Ink were given to poets this month.\n\n## November's Top Supported Poems\n\n1. \"Silence in the Library\" by Maya Rivers\n2. \"City of Rain\" by James Morrison\n3. \"My Grandmother's Hands\" by Lucia Santos\n\nThank you for making WordStack a place where poetry thrives.\n\n-- The WordStack Team",
-      category: "Community",
-      coverImage: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&h=600&fit=crop",
-      author: "WordStack Team",
-      publishedAt: "2024-11-15T00:00:00.000Z",
-      updatedAt: "2024-11-15T00:00:00.000Z",
-      createdAt: "2024-11-15T00:00:00.000Z",
-      status: "published",
-      showInCarousel: true,
-      readTime: "3m read",
-      metaTitle: "November's Most Inked Poems | WordStack Blog",
-      metaDescription: "Celebrating November's most supported poems on WordStack.",
-      metaKeywords: "poetry, community, ink, wordstack",
-      ogImage: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=1200&h=600&fit=crop"
-    }
-  ];
-  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(seeds));
-  return seeds;
-}
-
-export function getBlogPosts(): BlogPost[] {
-  const stored = localStorage.getItem(BLOG_POSTS_KEY);
-  if (!stored) return seedBlogPosts();
-  const posts: BlogPost[] = JSON.parse(stored);
-  return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-export function getPublishedBlogPosts(): BlogPost[] {
-  return getBlogPosts().filter(p => p.status === "published");
-}
-
-export function getCarouselPosts(): BlogPost[] {
-  return getPublishedBlogPosts().filter(p => p.showInCarousel);
-}
-
-export function getBlogPost(idOrSlug: string): BlogPost | null {
-  const posts = getBlogPosts();
-  return posts.find(p => p.id === idOrSlug || p.slug === idOrSlug) || null;
-}
-
-export function createBlogPost(data: Omit<BlogPost, "id" | "createdAt" | "updatedAt" | "slug"> & { slug?: string }): BlogPost {
-  const now = new Date().toISOString();
-  const post: BlogPost = {
-    ...data,
-    id: `blog-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-    slug: data.slug || generateSlug(data.title),
-    createdAt: now,
-    updatedAt: now,
-  };
-  const posts = getBlogPosts();
-  posts.unshift(post);
-  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(posts));
-  return post;
-}
-
-export function updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost | null {
-  const posts = getBlogPosts();
-  const index = posts.findIndex(p => p.id === id);
-  if (index === -1) return null;
-  posts[index] = { ...posts[index], ...updates, updatedAt: new Date().toISOString() };
-  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(posts));
-  return posts[index];
-}
-
-export function deleteBlogPost(id: string): boolean {
-  const posts = getBlogPosts();
-  const filtered = posts.filter(p => p.id !== id);
-  if (filtered.length === posts.length) return false;
-  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(filtered));
-  return true;
-}
-
 
 // Give Claps (Ink) directly to a poet (Buy Me a Coffee style)
 const POET_SUPPORTERS_KEY = "ws_poet_supporters";
@@ -342,12 +132,6 @@ export function giveClapsToPoet(
 export function getUserPoemClaps(userId: string, poemId: string): number {
   const clapsKey = `ws_user_poem_claps_${userId}`;
   const stored = localStorage.getItem(clapsKey);
-  const claps = stored ? JSON.parse(stored) : {};
-  return claps[poemId] || 0;
-}
-
-export function getPoemClaps(poemId: string): number {
-  const stored = localStorage.getItem(POEM_CLAPS_KEY);
   const claps = stored ? JSON.parse(stored) : {};
   return claps[poemId] || 0;
 }
@@ -1162,5 +946,94 @@ export function giveInkToPoem(
     poemTitle
   );
 
+  return true;
+}
+
+// Blog Posts Management
+import { BlogPost, AccountDeletionRequest } from "@/types";
+
+const BLOG_POSTS_KEY = "ws_blog_posts";
+
+export function getBlogPosts(): BlogPost[] {
+  const stored = localStorage.getItem(BLOG_POSTS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function createBlogPost(post: Omit<BlogPost, "id" | "createdAt" | "updatedAt">): BlogPost {
+  const newPost: BlogPost = {
+    ...post,
+    id: `blog-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const posts = getBlogPosts();
+  posts.push(newPost);
+  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(posts));
+
+  return newPost;
+}
+
+export function updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost | null {
+  const posts = getBlogPosts();
+  const index = posts.findIndex(p => p.id === id);
+
+  if (index === -1) return null;
+
+  posts[index] = {
+    ...posts[index],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  };
+
+  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(posts));
+  return posts[index];
+}
+
+export function deleteBlogPost(id: string): boolean {
+  const posts = getBlogPosts();
+  const filtered = posts.filter(p => p.id !== id);
+
+  if (filtered.length === posts.length) return false;
+
+  localStorage.setItem(BLOG_POSTS_KEY, JSON.stringify(filtered));
+  return true;
+}
+
+// Account Deletion Requests
+const DELETION_REQUESTS_KEY = "ws_deletion_requests";
+
+export function getAccountDeletionRequests(): AccountDeletionRequest[] {
+  const stored = localStorage.getItem(DELETION_REQUESTS_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function createDeletionRequest(
+  userId: string,
+  userName: string,
+  reason: string
+): AccountDeletionRequest {
+  const request: AccountDeletionRequest = {
+    id: `del-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    userId,
+    userName,
+    reason,
+    createdAt: new Date().toISOString()
+  };
+
+  const requests = getAccountDeletionRequests();
+  requests.push(request);
+  localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(requests));
+
+  return request;
+}
+
+export function dismissDeletionRequest(id: string): boolean {
+  const requests = getAccountDeletionRequests();
+  const filtered = requests.filter(r => r.id !== id);
+
+  if (filtered.length === requests.length) return false;
+
+  localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(filtered));
   return true;
 }
