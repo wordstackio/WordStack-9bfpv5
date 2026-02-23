@@ -14,7 +14,15 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      navigate(user.isAdmin ? "/admin/dashboard" : "/feed", { replace: true });
+      const isViewingSite = localStorage.getItem("wordstack_admin_viewing_site") === "true";
+      if (user.isAdmin && isViewingSite) {
+        // Admin is previewing the site — send to /feed instead of dashboard
+        navigate("/feed", { replace: true });
+      } else if (user.isAdmin) {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/feed", { replace: true });
+      }
     }
   }, [user, navigate]);
 

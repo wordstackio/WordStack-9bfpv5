@@ -16,7 +16,12 @@ export default function Login() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
-      navigate(user.isAdmin ? "/admin/dashboard" : "/feed", { replace: true });
+      const isViewingSite = localStorage.getItem("wordstack_admin_viewing_site") === "true";
+      if (user.isAdmin && isViewingSite) {
+        navigate("/feed", { replace: true });
+      } else {
+        navigate(user.isAdmin ? "/admin/dashboard" : "/feed", { replace: true });
+      }
     }
   }, [navigate]);
 
