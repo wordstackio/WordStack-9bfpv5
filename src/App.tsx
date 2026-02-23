@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { restoreSession } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { restoreSession, getCurrentUser } from "@/lib/auth";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import FAB from "@/components/layout/FAB";
@@ -29,19 +29,31 @@ import AdminDashboard from "@/pages/AdminDashboard";
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [sessionReady, setSessionReady] = useState(false);
+
+  const isAdminRoute = location.pathname.startsWith("/admin") || location.pathname === "/wsadmin";
 
   useEffect(() => {
-    // Restore session on app load and redirect admin to dashboard
     restoreSession().then((user) => {
-      if (user?.isAdmin && !location.pathname.startsWith("/admin")) {
+      setSessionReady(true);
+      if (user?.isAdmin && !location.pathname.startsWith("/admin") && location.pathname !== "/wsadmin") {
         navigate("/admin/dashboard", { replace: true });
       }
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Show nothing until session is resolved to prevent flash
+  if (!sessionReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
       <div className="min-h-screen bg-background">
-        <Header />
+        {!isAdminRoute && <Header />}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -65,8 +77,8 @@ function AppContent() {
           <Route path="/wsadmin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
-        <BottomNav />
-        <FAB />
+        {!isAdminRoute && <BottomNav />}
+        {!isAdminRoute && <FAB />}
       </div>
   );
 }
