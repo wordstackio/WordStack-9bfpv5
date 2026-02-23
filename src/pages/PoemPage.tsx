@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useCallback } from "react";
-import { MessageCircle, User } from "lucide-react";
+import { MessageCircle, User, Share2, Bookmark } from "lucide-react";
 import { mockPoems, mockPoets, mockPoemComments } from "@/lib/mockData";
 import { getCurrentUser } from "@/lib/auth";
 import { clapPoem, getPoemClaps, getUserPoemClaps, getPoemComments, canUseInk, getFreeInkUsage } from "@/lib/storage";
@@ -87,29 +87,96 @@ export default function PoemPage() {
   };
 
   const totalClaps = poem.clapsCount + localClaps;
+  const [saved, setSaved] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: poem.title, text: `"${poem.title}" by ${poem.poetName}`, url });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      alert("Link copied to clipboard");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background py-12 md:py-20">
-      <article className="container mx-auto px-4 max-w-2xl">
+    <div className="min-h-screen bg-background py-10 md:py-16">
+      <article className="container mx-auto px-5 max-w-2xl">
         {/* Poem Title */}
-        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-10 leading-tight text-balance">
+        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-8 leading-tight text-balance">
           {poem.title}
         </h1>
 
-        {/* Poem Content */}
-        <div className="font-serif text-lg md:text-xl leading-loose text-foreground/85 whitespace-pre-line mb-12">
+        {/* Poem Content -- large serif, generous spacing */}
+        <div className="font-serif text-xl sm:text-2xl md:text-[1.7rem] leading-relaxed md:leading-[2.2] text-foreground whitespace-pre-line mb-10">
           {poem.content}
         </div>
 
-        {/* Poet Info + Actions on same row */}
-        <div className="flex items-center py-8 border-t border-border/40">
-          <Link 
+        {/* Action Bar: claps + comments left, share + save right */}
+        <div className="flex items-center justify-between py-5 border-t border-border/30">
+          {/* Left: claps & comments */}
+          <div className="flex items-center gap-5">
+            <button
+              onClick={handleClap}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors group"
+              aria-label={`Clap for this poem. ${totalClaps} claps`}
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform inline-block leading-none">
+                {'👏'}
+              </span>
+              {totalClaps > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowClappersModal(true); }}
+                  className="text-sm font-medium hover:underline"
+                >
+                  {totalClaps}
+                </button>
+              )}
+            </button>
+
+            <button
+              onClick={() => setShowCommentsOverlay(true)}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label={`View comments. ${comments.length} comments`}
+            >
+              <MessageCircle className="w-[22px] h-[22px]" />
+              {comments.length > 0 && (
+                <span className="text-sm font-medium">{comments.length}</span>
+              )}
+            </button>
+          </div>
+
+          {/* Right: share & save */}
+          <div className="flex items-center gap-5">
+            <button
+              onClick={handleShare}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Share this poem"
+            >
+              <Share2 className="w-[22px] h-[22px]" />
+            </button>
+
+            <button
+              onClick={() => setSaved(!saved)}
+              className={`transition-colors ${saved ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              aria-label={saved ? "Unsave this poem" : "Save this poem"}
+            >
+              <Bookmark className="w-[22px] h-[22px]" fill={saved ? "currentColor" : "none"} />
+            </button>
+          </div>
+        </div>
+
+        {/* Written by -- avatar + name */}
+        <div className="py-5 border-t border-border/30">
+          <Link
             to={`/poet/${poem.poetId}`}
             className="flex items-center gap-3 group"
           >
             {poem.poetAvatar ? (
-              <img 
-                src={poem.poetAvatar} 
+              <img
+                src={poem.poetAvatar}
                 alt={poem.poetName}
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -118,47 +185,13 @@ export default function PoemPage() {
                 <User className="w-5 h-5 text-muted-foreground" />
               </div>
             )}
-            <div>
-              <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+            <p className="text-sm text-muted-foreground">
+              Written by{" "}
+              <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
                 {poem.poetName}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {shortTimeAgo(poem.createdAt)}
-              </p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-5 ml-auto">
-            {/* Clap icon -- triggers clap action */}
-            <button
-              onClick={handleClap}
-              className="text-muted-foreground hover:text-foreground transition-colors group"
-              aria-label={`Clap for this poem. ${totalClaps} claps`}
-            >
-              <span className="text-2xl group-hover:scale-110 transition-transform inline-block">
-                {'👏'}
               </span>
-            </button>
-
-            {/* Clap count text -- opens clappers modal */}
-            <button
-              onClick={() => setShowClappersModal(true)}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              aria-label={`View who clapped. ${totalClaps} claps`}
-            >
-              {totalClaps} {totalClaps === 1 ? 'clap' : 'claps'}
-            </button>
-
-            {/* Comment icon -- opens comments overlay */}
-            <button
-              onClick={() => setShowCommentsOverlay(true)}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label={`View comments. ${comments.length} comments`}
-            >
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">{comments.length}</span>
-            </button>
-          </div>
+            </p>
+          </Link>
         </div>
       </article>
 
