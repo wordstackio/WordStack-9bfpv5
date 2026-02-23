@@ -31,7 +31,7 @@ const mapSupabaseUserToUser = async (supabaseUser: any): Promise<User | null> =>
     id: profile.id,
     name: profile.name,
     bio: profile.bio || '',
-    isPoet: profile.is_poet,
+    isPoet: profile.is_admin ? true : profile.is_poet,
     isAdmin: profile.is_admin,
     avatar: profile.avatar,
     followersCount: profile.followers_count || 0,
@@ -208,6 +208,32 @@ export const upgradeToPoet = async (userId: string): Promise<User | null> => {
   } catch (err) {
     console.error('Upgrade failed:', err);
     return null;
+  }
+};
+
+// Delete account
+export const deleteAccount = async (): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const user = getCurrentUser();
+    if (!user) return { success: false, error: "No user logged in" };
+
+    // Delete the profile from Supabase
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', user.id);
+
+    if (profileError) {
+      console.error('Profile deletion error:', profileError);
+    }
+
+    // Sign out
+    await supabase.auth.signOut();
+    clearCurrentUser();
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Account deletion failed' };
   }
 };
 
