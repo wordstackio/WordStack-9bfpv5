@@ -16,7 +16,7 @@ export default function Login() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
-      navigate("/feed", { replace: true });
+      navigate(user.isAdmin ? "/admin/dashboard" : "/feed", { replace: true });
     }
   }, [navigate]);
 

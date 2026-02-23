@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { restoreSession } from "@/lib/auth";
 import Header from "@/components/layout/Header";
@@ -26,14 +26,20 @@ import Analytics from "@/pages/Analytics";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
-    // Restore session on app load
-    restoreSession();
-  }, []);
+    // Restore session on app load and redirect admin to dashboard
+    restoreSession().then((user) => {
+      if (user?.isAdmin && !location.pathname.startsWith("/admin")) {
+        navigate("/admin/dashboard", { replace: true });
+      }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <BrowserRouter>
       <div className="min-h-screen bg-background">
         <Header />
         <Routes>
@@ -62,6 +68,13 @@ function App() {
         <BottomNav />
         <FAB />
       </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }
