@@ -43,7 +43,7 @@ export default function GiveClapsOverlay({
       fromUserId: "user-1",
       fromUserName: "Sarah Mitchell",
       fromUserAvatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop",
+        "/images/avatars/avatar-woman-dark.jpg",
       toPoetId: poetId,
       amount: 5,
       message: "Your words always brighten my day!",
@@ -54,7 +54,7 @@ export default function GiveClapsOverlay({
       fromUserId: "user-4",
       fromUserName: "Leo Nguyen",
       fromUserAvatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop",
+        "/images/avatars/avatar-man-older.jpg",
       toPoetId: poetId,
       amount: 10,
       message: "Keep writing, the world needs more of this.",
@@ -65,7 +65,7 @@ export default function GiveClapsOverlay({
       fromUserId: "user-3",
       fromUserName: "Priya Kapoor",
       fromUserAvatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop",
+        "/images/avatars/avatar-woman-blonde.jpg",
       toPoetId: poetId,
       amount: 3,
       createdAt: "2024-11-15T09:00:00Z",
@@ -75,7 +75,7 @@ export default function GiveClapsOverlay({
       fromUserId: "user-5",
       fromUserName: "Amara Obi",
       fromUserAvatar:
-        "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop",
+        "/images/avatars/avatar-woman-closeup.jpg",
       toPoetId: poetId,
       amount: 1,
       message: "Beautiful.",

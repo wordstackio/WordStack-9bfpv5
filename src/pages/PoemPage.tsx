@@ -11,11 +11,11 @@ import CommentsOverlay from "@/components/features/CommentsOverlay";
 
 // Mock clapper profiles
 const mockClappers = [
-  { id: "user-1", name: "Sarah Mitchell", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop" },
-  { id: "user-2", name: "James Thornton", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" },
-  { id: "user-3", name: "Priya Kapoor", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop" },
-  { id: "user-4", name: "Leo Nguyen", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop" },
-  { id: "user-5", name: "Amara Obi", avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop" },
+  { id: "user-1", name: "Sarah Mitchell", avatar: "/images/avatars/avatar-woman-dark.jpg" },
+  { id: "user-2", name: "James Thornton", avatar: "/images/avatars/avatar-man-headshot.jpg" },
+  { id: "user-3", name: "Priya Kapoor", avatar: "/images/avatars/avatar-woman-blonde.jpg" },
+  { id: "user-4", name: "Leo Nguyen", avatar: "/images/avatars/avatar-man-older.jpg" },
+  { id: "user-5", name: "Amara Obi", avatar: "/images/avatars/avatar-woman-closeup.jpg" },
 ];
 
 export default function PoemPage() {
