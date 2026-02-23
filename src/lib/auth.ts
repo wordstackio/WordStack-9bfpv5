@@ -31,7 +31,7 @@ const mapSupabaseUserToUser = async (supabaseUser: any): Promise<User | null> =>
     id: profile.id,
     name: profile.name,
     bio: profile.bio || '',
-    isPoet: profile.is_poet,
+    isPoet: profile.is_admin ? true : profile.is_poet,
     isAdmin: profile.is_admin,
     avatar: profile.avatar,
     followersCount: profile.followers_count || 0,

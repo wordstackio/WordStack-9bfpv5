@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Feather, User, Settings, Edit, PenLine, BookOpen, Bell, LogOut, X, Menu, Wallet } from "lucide-react";
+import { Feather, User, Settings, Edit, PenLine, BookOpen, Bell, LogOut, X, Menu, Wallet, Shield } from "lucide-react";
 import { getCurrentUser, logout } from "@/lib/auth";
 import { getUnreadNotificationsCount, getUserInkBalance } from "@/lib/storage";
 
@@ -11,6 +11,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [inkBalance, setInkBalance] = useState(0);
+  const isAdminViewingSite = user?.isAdmin && localStorage.getItem("wordstack_admin_viewing_site") === "true";
 
   useEffect(() => {
     if (user) {
@@ -28,17 +29,40 @@ export default function Header() {
   }, [user]);
 
   const handleLogout = async () => {
+    const wasAdmin = user?.isAdmin;
+    localStorage.removeItem("wordstack_admin_viewing_site");
     await logout();
     setMenuOpen(false);
-    navigate("/");
+    navigate(wasAdmin ? "/wsadmin" : "/", { replace: true });
     window.location.reload();
+  };
+
+  const handleBackToAdmin = () => {
+    localStorage.removeItem("wordstack_admin_viewing_site");
+    navigate("/admin/dashboard");
   };
 
   const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
-      <header className="border-b border-border bg-card sticky top-0 z-40">
+      {isAdminViewingSite && (
+        <div className="bg-gray-900 text-white sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-2 flex items-center justify-between max-w-7xl">
+            <div className="flex items-center gap-2 text-sm">
+              <Shield className="w-4 h-4" />
+              <span className="font-medium">Admin Preview Mode</span>
+            </div>
+            <button
+              onClick={handleBackToAdmin}
+              className="text-sm font-medium px-3 py-1 rounded bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+      <header className={`border-b border-border bg-card ${isAdminViewingSite ? 'sticky top-[40px]' : 'sticky top-0'} z-40`}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between max-w-7xl">
           {/* Left: Profile Icon (or Login) */}
           <div className="flex items-center">

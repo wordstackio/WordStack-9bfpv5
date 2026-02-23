@@ -36,7 +36,8 @@ function AppContent() {
   useEffect(() => {
     restoreSession().then((user) => {
       setSessionReady(true);
-      if (user?.isAdmin && !location.pathname.startsWith("/admin") && location.pathname !== "/wsadmin") {
+      const isViewingSite = localStorage.getItem("wordstack_admin_viewing_site") === "true";
+      if (user?.isAdmin && !isViewingSite && !location.pathname.startsWith("/admin") && location.pathname !== "/wsadmin") {
         navigate("/admin/dashboard", { replace: true });
       }
     });

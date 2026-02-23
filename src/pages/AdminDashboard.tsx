@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, logout } from "@/lib/auth";
 import { 
   Users, 
   Feather, 
@@ -42,8 +42,11 @@ export default function AdminDashboard() {
   const totalPoems = mockPoems.length;
   const totalPosts = getCommunityPosts().length;
 
-  const handleLogout = () => {
-    navigate("/");
+  const handleLogout = async () => {
+    localStorage.removeItem("wordstack_admin_viewing_site");
+    await logout();
+    navigate("/wsadmin", { replace: true });
+    window.location.reload();
   };
 
   return (
@@ -65,7 +68,10 @@ export default function AdminDashboard() {
             </div>
             
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => navigate("/")}>
+              <Button variant="outline" size="sm" onClick={() => {
+                localStorage.setItem("wordstack_admin_viewing_site", "true");
+                navigate("/");
+              }}>
                 <Eye className="w-4 h-4 mr-2" />
                 View Site
               </Button>
