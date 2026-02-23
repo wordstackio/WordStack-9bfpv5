@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { restoreSession, getCurrentUser } from "@/lib/auth";
@@ -18,7 +19,6 @@ import ProfileEdit from "@/pages/ProfileEdit";
 import WritePage from "@/pages/WritePage";
 import CollectionsPage from "@/pages/CollectionsPage";
 import CollectionPage from "@/pages/CollectionPage";
-import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import BecomePoet from "@/pages/BecomePoet";
 import InkWallet from "@/pages/InkWallet";
@@ -42,7 +42,7 @@ function AppContent() {
         navigate("/admin/dashboard", { replace: true });
       }
     });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   // Show nothing until session is resolved to prevent flash
   if (!sessionReady) {
@@ -71,7 +71,6 @@ function AppContent() {
           <Route path="/write" element={<WritePage />} />
           <Route path="/collections" element={<CollectionsPage />} />
           <Route path="/collection/:id" element={<CollectionPage />} />
-          <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:id" element={<BlogPost />} />
           <Route path="/become-poet" element={<BecomePoet />} />
           <Route path="/ink-wallet" element={<InkWallet />} />

@@ -14,7 +14,6 @@ export interface User {
     instagram?: string;
     website?: string;
   };
-  profileHidden?: boolean;
 }
 
 export interface Poet extends User {
@@ -132,37 +131,6 @@ export interface Notification {
   commentId?: string;
   message: string;
   isRead: boolean;
-  createdAt: string;
-}
-
-export interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  coverImage: string;
-  author: string;
-  authorAvatar?: string;
-  publishedAt: string;
-  updatedAt: string;
-  createdAt: string;
-  status: "draft" | "published";
-  showInCarousel: boolean;
-  readTime: string;
-  metaTitle: string;
-  metaDescription: string;
-  metaKeywords: string;
-  ogImage: string;
-}
-
-export interface AccountDeletionRequest {
-  id: string;
-  userId: string;
-  userName: string;
-  userEmail?: string;
-  reason: string;
   createdAt: string;
 }
 
