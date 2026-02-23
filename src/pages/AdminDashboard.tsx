@@ -26,14 +26,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!user) {
-      navigate("/wsadmin");
+      navigate("/wsadmin", { replace: true });
       return;
     }
 
-    // Check if user is admin
-    const isAdmin = localStorage.getItem(`user-${user.id}-isAdmin`) === "true";
-    if (!isAdmin) {
-      navigate("/");
+    if (!user.isAdmin) {
+      navigate("/feed", { replace: true });
     }
   }, [user, navigate]);
 
