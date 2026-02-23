@@ -134,6 +134,28 @@ export interface Notification {
   createdAt: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  coverImage: string;
+  author: string;
+  authorAvatar?: string;
+  publishedAt: string;
+  updatedAt: string;
+  createdAt: string;
+  status: "draft" | "published";
+  showInCarousel: boolean;
+  readTime: string;
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  ogImage: string;
+}
+
 export interface FreeInkUsage {
   userId: string;
   dailyUsed: number;
