@@ -16,7 +16,10 @@ export default function AdminLogin() {
   useEffect(() => {
     const user = getCurrentUser();
     if (user?.isAdmin) {
-      navigate("/admin/dashboard");
+      const isViewingSite = localStorage.getItem("wordstack_admin_viewing_site") === "true";
+      if (!isViewingSite) {
+        navigate("/admin/dashboard");
+      }
     } else if (user) {
       navigate("/");
     }
