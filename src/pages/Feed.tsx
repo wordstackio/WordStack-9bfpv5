@@ -125,7 +125,7 @@ export default function Feed() {
         </div>
 
         {/* Poems Feed */}
-        <section className="mb-12">
+        <section className="mb-12 max-w-2xl mx-auto">
           {filteredPoems.length === 0 ? (
             <div className="py-16 text-center">
               {activeTab === "following" ? (
