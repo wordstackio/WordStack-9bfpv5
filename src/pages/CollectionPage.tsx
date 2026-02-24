@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCollection, getPublishedPoems } from "@/lib/storage";
-import { mockPoems, mockPoets } from "@/lib/mockData";
+import { mockPoems, mockPoets, mockCollections } from "@/lib/mockData";
 import { Collection, Poem } from "@/types";
 import { ArrowLeft, BookOpen, Heart, MessageCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
@@ -20,7 +20,12 @@ export default function CollectionPage() {
   useEffect(() => {
     if (!id) return;
 
-    const col = getCollection(id);
+    // Try to get from storage first, then fall back to mock data
+    let col = getCollection(id);
+    if (!col) {
+      col = mockCollections.find(c => c.id === id) || null;
+    }
+
     if (!col) {
       navigate("/");
       return;
