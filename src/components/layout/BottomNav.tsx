@@ -31,7 +31,7 @@ export default function BottomNav() {
       id: "profile",
       path: user.isPoet ? `/poet/${user.id}` : "/feed",
       icon: user.isPoet ? User : Heart,
-      label: user.isPoet ? "My Page" : "Profile"
+      label: user.isPoet ? "Challenges" : "Profile"
     }
   ];
 
