@@ -18,13 +18,16 @@ import { getCurrentUser, deleteAccount, logout, DEV_MODE } from "@/lib/auth";
 import { getPublishedPoems } from "@/lib/storage";
 import { mockPoems, mockPoets } from "@/lib/mockData";
 import { Poem } from "@/types";
-import { ArrowLeft, Download, FileText, FileJson, BookOpen, Trash2, AlertTriangle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/contexts/ThemeContext";
+import { ArrowLeft, Download, FileText, FileJson, BookOpen, Trash2, AlertTriangle, Moon, Sun } from "lucide-react";
 
 type ExportFormat = "txt" | "json";
 
 export default function Settings() {
   const navigate = useNavigate();
   const user = getCurrentUser();
+  const { theme, toggleTheme } = useTheme();
   const [exportFormat, setExportFormat] = useState<ExportFormat>("txt");
   const [exported, setExported] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -57,8 +60,6 @@ export default function Settings() {
   }, [user]);
 
   if (!user) return null;
-
-  console.log("[v0] Settings page rendering, user:", user.name, "isPoet:", user.isPoet);
 
   const poet = mockPoets.find((p) => p.id === user.id);
   const poetName = poet?.name ?? user.name;
@@ -171,6 +172,42 @@ export default function Settings() {
         </div>
 
         <div className="space-y-6">
+          {/* Appearance Section */}
+          <Card className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              {theme === "dark" ? (
+                <Moon className="w-6 h-6 text-primary" />
+              ) : (
+                <Sun className="w-6 h-6 text-primary" />
+              )}
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-foreground">Appearance</h2>
+                <p className="text-sm text-muted-foreground">
+                  Customize how WordStack looks on your device
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/40">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-background border border-border">
+                  <Moon className="w-4 h-4 text-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Dark mode</p>
+                  <p className="text-xs text-muted-foreground">
+                    {theme === "dark" ? "On - easier on the eyes at night" : "Off - using light theme"}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={toggleTheme}
+                aria-label="Toggle dark mode"
+              />
+            </div>
+          </Card>
+
           {/* Export Data Section */}
           {user.isPoet && (
             <Card className="p-8">
