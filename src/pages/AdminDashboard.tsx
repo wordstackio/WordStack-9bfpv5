@@ -27,9 +27,10 @@ import {
   ExternalLink,
   Search as SearchIcon,
   DoorOpen,
-  X
+  X,
+  Trophy
 } from "lucide-react";
-import { mockPoets, mockPoems } from "@/lib/mockData";
+import { mockPoets, mockPoems, mockChallenges } from "@/lib/mockData";
 import { getCommunityPosts, getBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, getAccountDeletionRequests, dismissDeletionRequest } from "@/lib/storage";
 import { BlogPost, AccountDeletionRequest } from "@/types";
 
@@ -59,7 +60,7 @@ const EMPTY_FORM: Omit<BlogPost, "id" | "createdAt" | "updatedAt"> = {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const [activeTab, setActiveTab] = useState<"overview" | "users" | "content" | "blog" | "leaving" | "settings">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "users" | "content" | "blog" | "challenges" | "leaving" | "settings">("overview");
 
   // Blog management state
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
@@ -227,6 +228,7 @@ export default function AdminDashboard() {
             { key: "overview", label: "Overview", icon: TrendingUp },
             { key: "users", label: "Users & Poets", icon: Users },
             { key: "content", label: "Content", icon: FileText },
+            { key: "challenges", label: "Challenges", icon: Trophy },
             { key: "blog", label: "Blog", icon: BookOpen },
             { key: "leaving", label: "Leaving WordStack", icon: DoorOpen },
             { key: "settings", label: "Settings", icon: Settings },
@@ -747,6 +749,74 @@ export default function AdminDashboard() {
                 </div>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* Challenges Tab */}
+        {activeTab === "challenges" && (
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-gray-700" />
+                  Manage Challenges
+                </h3>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Challenge
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {mockChallenges.map((challenge) => (
+                  <div key={challenge.id} className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                    {/* Featured Image Thumbnail */}
+                    {challenge.themeImage && (
+                      <img
+                        src={challenge.themeImage}
+                        alt={challenge.title}
+                        className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                      />
+                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-semibold text-gray-900">{challenge.title}</p>
+                        <span
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            challenge.status === "active"
+                              ? "bg-green-100 text-green-700"
+                              : challenge.status === "closed"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {challenge.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 line-clamp-1 mb-2">{challenge.theme}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>{challenge.entries.length} entries</span>
+                        <span>Ink Cost: {challenge.inkCost}</span>
+                        <span>Prize Pool: {challenge.prizePool} Ink</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => navigate(`/challenge/${challenge.id}`)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline">
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
         )}
 

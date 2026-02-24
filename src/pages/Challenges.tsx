@@ -70,7 +70,7 @@ export default function Challenges() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="container mx-auto px-4 max-w-4xl py-8">
+      <div className="container mx-auto px-4 max-w-5xl py-8">
         {/* Header */}
         <div className="mb-12">
           <h1 className="font-serif text-4xl font-bold text-foreground mb-2">
@@ -81,76 +81,80 @@ export default function Challenges() {
           </p>
         </div>
 
-        {/* Active Challenge Hero */}
+        {/* Active Challenge Hero with Featured Image */}
         {activeChallenge && (
-          <section className="mb-12">
-            <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-              <div className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Flame className="w-5 h-5 text-primary" />
-                      <span className="text-sm font-semibold text-primary uppercase tracking-wide">
-                        Active Challenge
-                      </span>
-                    </div>
-                    <h2 className="font-serif text-3xl font-bold text-foreground mb-2">
-                      {activeChallenge.theme}
-                    </h2>
-                    <p className="text-muted-foreground max-w-2xl">
-                      {activeChallenge.description}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-4xl font-bold text-primary mb-1">
-                      {daysRemaining}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {daysRemaining === 1 ? "day" : "days"} left
-                    </p>
-                  </div>
+          <section className="mb-16">
+            <div className="relative rounded-2xl overflow-hidden border border-primary/20 shadow-lg">
+              {/* Featured Image Background */}
+              <div
+                className="absolute inset-0 w-full h-full"
+                style={{
+                  backgroundImage: `url(${activeChallenge.themeImage})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+              
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+              
+              {/* Content */}
+              <div className="relative p-8 md:p-12 min-h-96 flex flex-col justify-end">
+                <div className="flex items-center gap-2 mb-4">
+                  <Flame className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-semibold text-primary uppercase tracking-wide">
+                    Active Challenge
+                  </span>
                 </div>
+                
+                <h2 className="font-serif text-4xl md:text-5xl font-bold text-white mb-4 text-balance">
+                  {activeChallenge.theme}
+                </h2>
+                
+                <p className="text-white/90 max-w-2xl mb-8 text-lg leading-relaxed">
+                  {activeChallenge.description}
+                </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8 pb-8 border-b border-border">
+                <div className="grid grid-cols-3 gap-6 mb-8">
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">INK COST</p>
-                    <p className="font-semibold text-foreground flex items-center gap-1">
-                      <Zap className="w-4 h-4 text-primary" />
-                      {activeChallenge.inkCost}
+                    <p className="text-xs text-white/70 mb-2 uppercase tracking-wide">Days Left</p>
+                    <p className="text-3xl font-bold text-white">
+                      {daysRemaining}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">SUBMISSIONS</p>
-                    <p className="font-semibold text-foreground">
+                    <p className="text-xs text-white/70 mb-2 uppercase tracking-wide">Submissions</p>
+                    <p className="text-3xl font-bold text-white">
                       {activeChallenge.entries.length}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">PRIZE POOL</p>
-                    <p className="font-semibold text-foreground">
-                      {activeChallenge.prizePool} Ink
+                    <p className="text-xs text-white/70 mb-2 uppercase tracking-wide">Ink Cost</p>
+                    <p className="text-3xl font-bold text-white flex items-center gap-1">
+                      <Zap className="w-5 h-5 text-yellow-400" />
+                      {activeChallenge.inkCost}
                     </p>
                   </div>
                 </div>
 
                 <Button
-                  className="w-full sm:w-auto"
                   size="lg"
                   onClick={() => setIsSubmitModalOpen(true)}
+                  className="w-full sm:w-auto"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Submit Your Poem
                 </Button>
               </div>
-            </Card>
+            </div>
           </section>
         )}
 
         {/* Sort & Filter */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-serif text-xl font-bold text-foreground flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
+            <h3 className="font-serif text-2xl font-bold text-foreground flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-primary" />
               Current Entries
             </h3>
             <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
@@ -176,17 +180,17 @@ export default function Challenges() {
             </p>
           </Card>
         ) : (
-          <div className="space-y-4 mb-12">
+          <div className="space-y-4 mb-16">
             {sortedEntries.map((entry) => (
               <ChallengeEntryCard key={entry.id} entry={entry} />
             ))}
           </div>
         )}
 
-        {/* Past Challenges Carousel */}
+        {/* Past Challenges Grid */}
         {pastChallenges.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-6">
+          <section>
+            <div className="flex items-center justify-between mb-8">
               <h3 className="font-serif text-2xl font-bold text-foreground flex items-center gap-2">
                 <Trophy className="w-6 h-6 text-primary" />
                 Past Challenges
@@ -196,40 +200,50 @@ export default function Challenges() {
               </Button>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-6">
               {pastChallenges.map((challenge) => (
-                <Card
+                <div
                   key={challenge.id}
-                  className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                  className="group relative rounded-xl overflow-hidden cursor-pointer border border-border hover:border-primary/50 transition-all"
                   onClick={() => navigate(`/challenge/${challenge.id}`)}
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  {/* Featured Image */}
+                  <div
+                    className="absolute inset-0 w-full h-full group-hover:scale-110 transition-transform duration-300"
+                    style={{
+                      backgroundImage: `url(${challenge.themeImage})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                  
+                  {/* Content */}
+                  <div className="relative p-6 h-64 flex flex-col justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Challenge Completed
-                      </p>
-                      <h4 className="font-serif text-lg font-bold text-foreground">
+                      {challenge.winners && challenge.winners.length > 0 && (
+                        <Trophy className="w-6 h-6 text-yellow-400 mb-3" />
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-serif text-2xl font-bold text-white mb-2 text-balance">
                         {challenge.title}
                       </h4>
-                    </div>
-                    <Trophy className="w-5 h-5 text-primary flex-shrink-0" />
-                  </div>
-
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {challenge.description}
-                  </p>
-
-                  {challenge.winners && challenge.winners.length > 0 && (
-                    <div className="pt-4 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-2">
-                        {challenge.winners.length} winner{challenge.winners.length !== 1 ? "s" : ""}
+                      <p className="text-white/80 text-sm line-clamp-2 mb-4">
+                        {challenge.description}
                       </p>
-                      <Badge variant="secondary" className="text-xs">
-                        Winners Featured
-                      </Badge>
+                      
+                      {challenge.winners && challenge.winners.length > 0 && (
+                        <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-100">
+                          {challenge.winners.length} {challenge.winners.length === 1 ? "Winner" : "Winners"}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           </section>

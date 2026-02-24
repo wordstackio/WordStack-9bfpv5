@@ -177,6 +177,7 @@ export interface Challenge {
   title: string;
   description: string;
   theme: string;
+  themeImage: string; // Featured image URL for the challenge
   deadlineDate: string;
   inkCost: number;
   status: "active" | "closed" | "past";
