@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChallengeEntry } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Zap, Heart, MessageCircle, Trophy, Star } from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 
 interface ChallengeEntryCardProps {
   entry: ChallengeEntry;
@@ -48,14 +47,6 @@ export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
                 {entry.poemTitle}
               </h3>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {entry.isWinner && (
-                <Trophy className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-              )}
-              {entry.isShortlisted && !entry.isWinner && (
-                <Star className="w-5 h-5 text-primary" />
-              )}
-            </div>
           </div>
 
           {/* Poem Preview */}
@@ -93,16 +84,6 @@ export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
             </div>
           </div>
         </div>
-
-        {/* Action Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex-shrink-0"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Zap className="w-4 h-4" />
-        </Button>
       </div>
     </Card>
   );
