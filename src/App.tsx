@@ -29,6 +29,7 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import DevModeBanner from "@/components/features/DevModeBanner";
 import Challenges from "@/pages/Challenges";
+import ChallengeDetail from "@/pages/ChallengeDetail";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ function AppContent() {
           <Route path="/ink-store" element={<InkStore />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/challenges" element={<Challenges />} />
-          <Route path="/challenge/:id" element={<Challenges />} />
+          <Route path="/challenge/:id" element={<ChallengeDetail />} />
           <Route path="/wsadmin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
