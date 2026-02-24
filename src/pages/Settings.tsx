@@ -58,6 +58,8 @@ export default function Settings() {
 
   if (!user) return null;
 
+  console.log("[v0] Settings page rendering, user:", user.name, "isPoet:", user.isPoet);
+
   const poet = mockPoets.find((p) => p.id === user.id);
   const poetName = poet?.name ?? user.name;
 
@@ -339,32 +341,31 @@ ${allPoems[0]?.content?.split("\n").slice(0, 3).join("\n") ?? ""}
                     <AlertTriangle className="w-5 h-5 text-destructive" />
                     Are you absolutely sure?
                   </AlertDialogTitle>
-                  <AlertDialogDescription asChild>
-                    <div className="space-y-3">
-                      <p>
-                        This will permanently delete your account, all your poems,
-                        drafts, collections, and any other data associated with your
-                        account. This action cannot be undone.
-                      </p>
-                      <div>
-                        <p className="text-sm font-medium text-foreground mb-2">
-                          Type <span className="font-mono font-bold text-destructive">DELETE</span> to confirm
-                        </p>
-                        <Input
-                          value={deleteConfirmText}
-                          onChange={(e) => setDeleteConfirmText(e.target.value)}
-                          placeholder="Type DELETE to confirm"
-                          className="font-mono"
-                          autoComplete="off"
-                        />
-                      </div>
-                    </div>
+                  <AlertDialogDescription>
+                    This will permanently delete your account, all your poems,
+                    drafts, collections, and any other data associated with your
+                    account. This action cannot be undone.
                   </AlertDialogDescription>
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Type <span className="font-mono font-bold text-destructive">DELETE</span> to confirm
+                    </p>
+                    <Input
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder="Type DELETE to confirm"
+                      className="font-mono"
+                      autoComplete="off"
+                    />
+                  </div>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={handleDeleteAccount}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeleteAccount();
+                    }}
                     disabled={deleteConfirmText !== "DELETE" || isDeleting}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
