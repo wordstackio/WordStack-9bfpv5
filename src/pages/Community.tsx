@@ -458,7 +458,7 @@ export default function Community() {
           </div>
         ) : (
           <div>
-            {filteredPosts.map(post => {
+            {filteredPosts.map((post, index) => {
               const poet = getPoetInfo(post.poetId) || {
                 id: post.poetId,
                 name: post.poetName,
@@ -467,12 +467,13 @@ export default function Community() {
               const isLiked = getPostLiked(user.id, post.id);
               
               return (
-                <article
-                  key={post.id}
-                  className="border-b border-border px-4 py-3 hover:bg-muted/10 transition-colors"
-                >
-                  <div className="flex gap-3">
-                    {/* Avatar */}
+                <div key={post.id}>
+                  {index > 0 && (
+                    <div className="h-[1px] bg-border" />
+                  )}
+                  <article className="px-4 pt-3 pb-2.5 hover:bg-muted/10 transition-colors">
+                    <div className="flex gap-3">
+                      {/* Avatar */}
                     <button
                       onClick={() => navigate(`/poet/${poet.id}`)}
                       className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity mt-0.5"
@@ -517,7 +518,7 @@ export default function Community() {
                       </p>
 
                       {/* Action bar */}
-                      <div className="flex items-center justify-between mt-2 -ml-2 max-w-xs">
+                      <div className="flex items-center justify-between mt-1.5 -ml-2 max-w-[300px]">
                         <button 
                           onClick={() => toggleComments(post.id)}
                           className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors group"
@@ -611,7 +612,8 @@ export default function Community() {
                       )}
                     </div>
                   </div>
-                </article>
+                  </article>
+                </div>
               );
             })}
           </div>
