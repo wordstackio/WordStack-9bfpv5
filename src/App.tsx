@@ -28,6 +28,7 @@ import Notifications from "@/pages/Notifications";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import DevModeBanner from "@/components/features/DevModeBanner";
+import Challenges from "@/pages/Challenges";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -79,6 +80,8 @@ function AppContent() {
           <Route path="/ink-wallet" element={<InkWallet />} />
           <Route path="/ink-store" element={<InkStore />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/challenges" element={<Challenges />} />
+          <Route path="/challenge/:id" element={<Challenges />} />
           <Route path="/wsadmin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
