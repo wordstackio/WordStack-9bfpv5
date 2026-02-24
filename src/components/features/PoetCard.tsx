@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { User, BookOpen, Droplets, Users } from "lucide-react";
@@ -14,6 +14,7 @@ interface PoetCardProps {
 }
 
 export default function PoetCard({ poet, previewLine, badge }: PoetCardProps) {
+  const navigate = useNavigate();
   const user = getCurrentUser();
   const [following, setFollowing] = useState(isFollowing(poet.id));
 
@@ -33,9 +34,12 @@ export default function PoetCard({ poet, previewLine, badge }: PoetCardProps) {
     }
   };
 
+  const handleCardClick = () => {
+    navigate(`/poet/${poet.id}`);
+  };
+
   return (
-    <Link to={`/poet/${poet.id}`} className="block group">
-      <Card className="p-4 h-full transition-all duration-200 hover:shadow-md hover:border-primary/30 relative overflow-hidden">
+    <Card onClick={handleCardClick} className="p-4 h-full transition-all duration-200 hover:shadow-md hover:border-primary/30 relative overflow-hidden cursor-pointer group">
         {/* Badge */}
         {badge && (
           <div className="absolute top-3 right-3">
@@ -107,6 +111,5 @@ export default function PoetCard({ poet, previewLine, badge }: PoetCardProps) {
           </div>
         )}
       </Card>
-    </Link>
   );
 }
