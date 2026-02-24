@@ -2,11 +2,23 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getCurrentUser } from "@/lib/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { getCurrentUser, deleteAccount, logout, DEV_MODE } from "@/lib/auth";
 import { getPublishedPoems } from "@/lib/storage";
 import { mockPoems, mockPoets } from "@/lib/mockData";
 import { Poem } from "@/types";
-import { ArrowLeft, Download, FileText, FileJson, BookOpen } from "lucide-react";
+import { ArrowLeft, Download, FileText, FileJson, BookOpen, Trash2, AlertTriangle } from "lucide-react";
 
 type ExportFormat = "txt" | "json";
 
@@ -15,6 +27,9 @@ export default function Settings() {
   const user = getCurrentUser();
   const [exportFormat, setExportFormat] = useState<ExportFormat>("txt");
   const [exported, setExported] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -42,6 +57,8 @@ export default function Settings() {
   }, [user]);
 
   if (!user) return null;
+
+  console.log("[v0] Settings page rendering, user:", user.name, "isPoet:", user.isPoet);
 
   const poet = mockPoets.find((p) => p.id === user.id);
   const poetName = poet?.name ?? user.name;
@@ -104,6 +121,31 @@ export default function Settings() {
 
     setExported(true);
     setTimeout(() => setExported(false), 2500);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") return;
+    setIsDeleting(true);
+
+    try {
+      if (DEV_MODE) {
+        // In dev mode just clear local session
+        await logout();
+      } else {
+        const result = await deleteAccount();
+        if (!result.success) {
+          console.error("Delete account failed:", result.error);
+          setIsDeleting(false);
+          return;
+        }
+      }
+      // Clear all local storage data for this user
+      localStorage.clear();
+      navigate("/login");
+    } catch (err) {
+      console.error("Delete account error:", err);
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -253,6 +295,86 @@ ${allPoems[0]?.content?.split("\n").slice(0, 3).join("\n") ?? ""}
               </p>
             </Card>
           )}
+
+          {/* Delete Account Section */}
+          <Card className="p-8 border-destructive/30">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
+                <Trash2 className="w-5 h-5 text-destructive" />
+              </div>
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-foreground">Delete Account</h2>
+                <p className="text-sm text-muted-foreground">
+                  Permanently remove your account and all associated data
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 mb-6">
+              <div className="flex gap-3">
+                <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div className="text-sm text-foreground">
+                  <p className="font-medium mb-1">This action is irreversible</p>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                    <li>All your poems and drafts will be permanently deleted</li>
+                    <li>Your profile, collections, and comments will be removed</li>
+                    <li>Any ink balance and transaction history will be lost</li>
+                    <li>You will not be able to recover your account</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+              setDeleteDialogOpen(open);
+              if (!open) setDeleteConfirmText("");
+            }}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  Delete My Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Are you absolutely sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete your account, all your poems,
+                    drafts, collections, and any other data associated with your
+                    account. This action cannot be undone.
+                  </AlertDialogDescription>
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-foreground mb-2">
+                      Type <span className="font-mono font-bold text-destructive">DELETE</span> to confirm
+                    </p>
+                    <Input
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder="Type DELETE to confirm"
+                      className="font-mono"
+                      autoComplete="off"
+                    />
+                  </div>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDeleteAccount();
+                    }}
+                    disabled={deleteConfirmText !== "DELETE" || isDeleting}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete Account Permanently"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </Card>
         </div>
       </div>
     </div>
