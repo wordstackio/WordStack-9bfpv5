@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import GiveClapsOverlay from "@/components/features/GiveClapsOverlay";
 
 export default function PoetPage() {
   const { id } = useParams();
+  const location = useLocation();
   const user = getCurrentUser();
   
   const poet = mockPoets.find(p => p.id === id);
@@ -26,7 +27,7 @@ export default function PoetPage() {
       const prefs = getThemePreferences(poet.id);
       setTheme(prefs);
     }
-  }, [poet]);
+  }, [poet, id, location]);
   
   if (!poet || !theme) {
     return (
