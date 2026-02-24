@@ -1,15 +1,7 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ChallengeEntryCard from "@/components/features/ChallengeEntryCard";
 import SubmitChallengeModal from "@/components/features/SubmitChallengeModal";
 import { mockChallenges } from "@/lib/mockData";
@@ -17,39 +9,19 @@ import { getCurrentUser } from "@/lib/auth";
 import {
   Trophy,
   Clock,
-  TrendingUp,
   Flame,
   Sparkles,
   Zap,
   ArrowLeft,
 } from "lucide-react";
 
-type SortOption = "newest" | "featured" | "shortlisted";
-
 export default function ChallengeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const [sortBy, setSortBy] = useState<SortOption>("featured");
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   const challenge = useMemo(() => mockChallenges.find((c) => c.id === id), [id]);
-
-  const sortedEntries = useMemo(() => {
-    if (!challenge) return [];
-    const entries = [...challenge.entries];
-
-    switch (sortBy) {
-      case "featured":
-        return entries.sort((a, b) => (b.isShortlisted ? 1 : 0) - (a.isShortlisted ? 1 : 0));
-      case "shortlisted":
-        return entries.filter((e) => e.isShortlisted).sort((a, b) => b.inkReceived - a.inkReceived);
-      case "newest":
-        return entries.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
-      default:
-        return entries;
-    }
-  }, [challenge, sortBy]);
 
   const daysRemaining = challenge
     ? Math.ceil(
@@ -170,26 +142,13 @@ export default function ChallengeDetail() {
 
         {/* Sort & Filter */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-serif text-2xl font-bold text-foreground flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-primary" />
-              {isPast ? "Winning Entries" : "Current Entries"}
-            </h3>
-            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="featured">Featured</SelectItem>
-                <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <h3 className="font-serif text-2xl font-bold text-foreground">
+            {isPast ? "Winning Entries" : "Current Entries"}
+          </h3>
         </div>
 
         {/* Entries Feed */}
-        {sortedEntries.length === 0 ? (
+        {challenge.entries.length === 0 ? (
           <Card className="p-12 text-center">
             <Clock className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
             <p className="text-muted-foreground font-medium">No entries yet</p>
@@ -201,7 +160,7 @@ export default function ChallengeDetail() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {sortedEntries.map((entry) => (
+            {challenge.entries.map((entry) => (
               <ChallengeEntryCard key={entry.id} entry={entry} />
             ))}
           </div>
