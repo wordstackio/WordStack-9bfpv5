@@ -11,7 +11,7 @@ import {
   Clock,
   Flame,
   Sparkles,
-  Zap,
+  Droplets,
   ArrowLeft,
 } from "lucide-react";
 
@@ -109,13 +109,13 @@ export default function ChallengeDetail() {
                     {challenge.entries.length}
                   </p>
                 </div>
-                <div>
-                  <p className="text-xs text-white/70 mb-2 uppercase tracking-wide">Prize</p>
-                  <p className="text-3xl font-bold text-white flex items-center gap-1">
-                    <Zap className="w-5 h-5 text-yellow-400" />
-                    {challenge.prizePool}
-                  </p>
-                </div>
+                  <div>
+                    <p className="text-xs text-white/70 mb-2 uppercase tracking-wide">Ink Cost</p>
+                    <p className="text-3xl font-bold text-white flex items-center gap-1">
+                      <Droplets className="w-5 h-5 text-blue-400" />
+                      {activeChallenge.inkCost}
+                    </p>
+                  </div>
               </div>
 
               {!isPast && (
