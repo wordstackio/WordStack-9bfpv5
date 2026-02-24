@@ -1,330 +1,258 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { getCurrentUser } from "@/lib/auth";
-import { getThemePreferences, saveThemePreferences } from "@/lib/storage";
-import { ThemePreferences, Typography, ColorScheme } from "@/types";
-import { Palette, Type, Eye, Save, ArrowLeft } from "lucide-react";
+import { getPublishedPoems } from "@/lib/storage";
+import { mockPoems, mockPoets } from "@/lib/mockData";
+import { Poem } from "@/types";
+import { ArrowLeft, Download, FileText, FileJson, BookOpen } from "lucide-react";
+
+type ExportFormat = "txt" | "json";
 
 export default function Settings() {
   const navigate = useNavigate();
   const user = getCurrentUser();
-  const [preferences, setPreferences] = useState<ThemePreferences | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("txt");
+  const [exported, setExported] = useState(false);
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
       return;
     }
-    
-    if (!user.isPoet) {
-      navigate("/feed");
-      return;
-    }
-
-    const prefs = getThemePreferences(user.id);
-    setPreferences(prefs);
   }, [user, navigate]);
 
-  if (!preferences || !user) return null;
+  const allPoems = useMemo(() => {
+    if (!user) return [];
+    // Combine mock poems + localStorage published poems, deduplicate by id
+    const storedPoems = getPublishedPoems();
+    const combined = [...mockPoems, ...storedPoems];
+    const seen = new Set<string>();
+    const unique: Poem[] = [];
+    for (const poem of combined) {
+      if (poem.poetId === user.id && !seen.has(poem.id)) {
+        seen.add(poem.id);
+        unique.push(poem);
+      }
+    }
+    // Sort by date, newest first
+    unique.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return unique;
+  }, [user]);
 
-  const handleSave = () => {
-    saveThemePreferences(user.id, preferences);
-    setSaved(true);
-    setTimeout(() => {
-      setSaved(false);
-      // Optionally navigate to poet page to see changes
-      // navigate(`/poet/${user.id}`);
-    }, 1500);
+  if (!user) return null;
+
+  const poet = mockPoets.find((p) => p.id === user.id);
+  const poetName = poet?.name ?? user.name;
+
+  const generateTextExport = (): string => {
+    const lines: string[] = [];
+    lines.push(`=== ${poetName}'s Poems ===`);
+    lines.push(`Exported on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`);
+    lines.push(`Total poems: ${allPoems.length}`);
+    lines.push("");
+
+    for (const poem of allPoems) {
+      lines.push("---");
+      lines.push(`Title: ${poem.title}`);
+      lines.push(`Date: ${new Date(poem.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}`);
+      lines.push("");
+      lines.push(poem.content);
+      lines.push("");
+    }
+
+    lines.push("---");
+    lines.push("Exported from WordStack");
+    return lines.join("\n");
   };
 
-  const typographyOptions: { value: Typography; label: string; description: string; preview: string }[] = [
-    {
-      value: "serif",
-      label: "Serif",
-      description: "Classic, timeless poetry feel",
-      preview: "The woods are lovely, dark and deep"
-    },
-    {
-      value: "sans",
-      label: "Sans-Serif",
-      description: "Modern, clean, contemporary",
-      preview: "The woods are lovely, dark and deep"
-    },
-    {
-      value: "typewriter",
-      label: "Typewriter",
-      description: "Vintage, raw, authentic",
-      preview: "The woods are lovely, dark and deep"
-    }
-  ];
+  const generateJsonExport = (): string => {
+    const data = {
+      poet: poetName,
+      exportedAt: new Date().toISOString(),
+      totalPoems: allPoems.length,
+      poems: allPoems.map((poem) => ({
+        title: poem.title,
+        content: poem.content,
+        createdAt: poem.createdAt,
+        clapsCount: poem.clapsCount,
+        commentsCount: poem.commentsCount,
+        isPinned: poem.isPinned ?? false,
+      })),
+    };
+    return JSON.stringify(data, null, 2);
+  };
 
-  const colorSchemeOptions: { value: ColorScheme; label: string; description: string; gradient: string }[] = [
-    {
-      value: "minimal-white",
-      label: "Minimal White",
-      description: "Clean, spacious, professional",
-      gradient: "from-white via-gray-50 to-gray-100"
-    },
-    {
-      value: "dark-literary",
-      label: "Dark Literary",
-      description: "Moody, elegant, dramatic",
-      gradient: "from-gray-900 via-gray-800 to-gray-700"
-    },
-    {
-      value: "warm-paper",
-      label: "Warm Paper",
-      description: "Vintage, cozy, inviting",
-      gradient: "from-amber-50 via-orange-50 to-yellow-50"
-    },
-    {
-      value: "modern-clean",
-      label: "Modern Clean",
-      description: "Crisp, balanced, sophisticated",
-      gradient: "from-blue-50 via-slate-50 to-gray-50"
-    }
-  ];
+  const handleExport = () => {
+    if (allPoems.length === 0) return;
 
-  const getFontClass = (typo: Typography): string => {
-    switch (typo) {
-      case "serif": return "font-serif";
-      case "sans": return "font-sans";
-      case "typewriter": return "font-mono";
-    }
+    const content = exportFormat === "txt" ? generateTextExport() : generateJsonExport();
+    const mimeType = exportFormat === "txt" ? "text/plain" : "application/json";
+    const extension = exportFormat;
+    const filename = `${poetName.toLowerCase().replace(/\s+/g, "-")}-poems.${extension}`;
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setExported(true);
+    setTimeout(() => setExported(false), 2500);
   };
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/poet/${user.id}`)}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to My Page
-            </Button>
-            <h1 className="font-serif text-4xl font-bold text-foreground mb-2">
-              Customize Your Page
-            </h1>
-            <p className="text-muted-foreground">
-              Make your poet page uniquely yours
-            </p>
-          </div>
-          
-          <Button size="lg" onClick={handleSave} className="gap-2">
-            <Save className="w-4 h-4" />
-            {saved ? "Saved!" : "Save Changes"}
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
           </Button>
+          <h1 className="font-serif text-4xl font-bold text-foreground mb-2">
+            Settings
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your account and export your work
+          </p>
         </div>
 
-        <div className="space-y-8">
-          {/* Typography Section */}
-          <Card className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Type className="w-6 h-6 text-primary" />
-              <div>
-                <h2 className="font-serif text-2xl font-bold">Typography</h2>
-                <p className="text-sm text-muted-foreground">
-                  Choose the font style that matches your voice
-                </p>
+        <div className="space-y-6">
+          {/* Export Data Section */}
+          {user.isPoet && (
+            <Card className="p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Download className="w-6 h-6 text-primary" />
+                <div>
+                  <h2 className="font-serif text-2xl font-bold text-foreground">Export Data</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Download all of your poems as a single file
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="grid gap-4">
-              {typographyOptions.map(option => (
-                <Card
-                  key={option.value}
-                  className={`p-6 cursor-pointer transition-all hover:shadow-md ${
-                    preferences.typography === option.value
-                      ? "ring-2 ring-primary bg-accent/30"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setPreferences({ ...preferences, typography: option.value })
-                  }
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-5 h-5 rounded-full border-2 border-primary flex items-center justify-center mt-1">
-                      {preferences.typography === option.value && (
-                        <div className="w-3 h-3 rounded-full bg-primary" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-1">{option.label}</h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {option.description}
-                      </p>
-                      <p className={`text-xl ${getFontClass(option.value)} italic`}>
-                        {option.preview}
-                      </p>
+              {/* Poem count summary */}
+              <div className="flex items-center gap-4 mb-6 p-4 rounded-lg bg-muted/40">
+                <BookOpen className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Poems available for export</p>
+                  <p className="text-2xl font-bold text-foreground">{allPoems.length}</p>
+                </div>
+              </div>
+
+              {allPoems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  You have no poems to export yet. Start writing to build your collection.
+                </p>
+              ) : (
+                <>
+                  {/* Format selection */}
+                  <div className="mb-6">
+                    <p className="text-sm font-medium text-foreground mb-3">Export format</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setExportFormat("txt")}
+                        className={`flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${
+                          exportFormat === "txt"
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <FileText className={`w-5 h-5 flex-shrink-0 ${exportFormat === "txt" ? "text-primary" : "text-muted-foreground"}`} />
+                        <div>
+                          <p className={`font-medium text-sm ${exportFormat === "txt" ? "text-primary" : "text-foreground"}`}>
+                            Plain Text
+                          </p>
+                          <p className="text-xs text-muted-foreground">.txt - Human readable</p>
+                        </div>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setExportFormat("json")}
+                        className={`flex items-center gap-3 p-4 rounded-lg border transition-all text-left ${
+                          exportFormat === "json"
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <FileJson className={`w-5 h-5 flex-shrink-0 ${exportFormat === "json" ? "text-primary" : "text-muted-foreground"}`} />
+                        <div>
+                          <p className={`font-medium text-sm ${exportFormat === "json" ? "text-primary" : "text-foreground"}`}>
+                            JSON
+                          </p>
+                          <p className="text-xs text-muted-foreground">.json - Structured data</p>
+                        </div>
+                      </button>
                     </div>
                   </div>
-                </Card>
-              ))}
-            </div>
-          </Card>
 
-          {/* Color Scheme Section */}
-          <Card className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Palette className="w-6 h-6 text-primary" />
-              <div>
-                <h2 className="font-serif text-2xl font-bold">Color Scheme</h2>
-                <p className="text-sm text-muted-foreground">
-                  Set the overall mood and atmosphere
-                </p>
-              </div>
-            </div>
+                  {/* Preview */}
+                  <div className="mb-6 p-4 rounded-lg border border-border bg-muted/20">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Preview</p>
+                    {exportFormat === "txt" ? (
+                      <pre className="text-xs text-muted-foreground font-mono leading-relaxed whitespace-pre-wrap">
+{`=== ${poetName}'s Poems ===
+Exported on ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+Total poems: ${allPoems.length}
 
-            <div className="grid md:grid-cols-2 gap-4">
-              {colorSchemeOptions.map(option => (
-                <Card
-                  key={option.value}
-                  className={`p-6 cursor-pointer transition-all hover:shadow-md ${
-                    preferences.colorScheme === option.value
-                      ? "ring-2 ring-primary"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setPreferences({ ...preferences, colorScheme: option.value })
-                  }
-                >
-                  <div
-                    className={`w-full h-24 rounded-lg mb-4 bg-gradient-to-br ${option.gradient}`}
-                  />
-                  <h3 className="font-semibold text-lg mb-1">{option.label}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {option.description}
-                  </p>
-                  {preferences.colorScheme === option.value && (
-                    <p className="text-xs text-primary font-medium mt-2">✓ Active</p>
-                  )}
-                </Card>
-              ))}
-            </div>
-          </Card>
+---
+Title: ${allPoems[0]?.title ?? ""}
+Date: ${allPoems[0] ? new Date(allPoems[0].createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : ""}
 
-          {/* Section Visibility */}
-          <Card className="p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Eye className="w-6 h-6 text-primary" />
-              <div>
-                <h2 className="font-serif text-2xl font-bold">Section Visibility</h2>
-                <p className="text-sm text-muted-foreground">
-                  Choose which sections appear on your page
-                </p>
-              </div>
-            </div>
+${allPoems[0]?.content?.split("\n").slice(0, 3).join("\n") ?? ""}
+...`}
+                      </pre>
+                    ) : (
+                      <pre className="text-xs text-muted-foreground font-mono leading-relaxed whitespace-pre-wrap">
+{`{
+  "poet": "${poetName}",
+  "totalPoems": ${allPoems.length},
+  "poems": [
+    {
+      "title": "${allPoems[0]?.title ?? ""}",
+      "content": "...",
+      "createdAt": "${allPoems[0]?.createdAt ?? ""}"
+    }
+    ...
+  ]
+}`}
+                      </pre>
+                    )}
+                  </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/20 transition-colors">
-                <div>
-                  <h3 className="font-semibold mb-1">Updates / Journal</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Share short updates and thoughts with your readers
-                  </p>
-                </div>
-                <Checkbox
-                  checked={preferences.sections.showUpdates}
-                  onCheckedChange={(checked) =>
-                    setPreferences({
-                      ...preferences,
-                      sections: { ...preferences.sections, showUpdates: !!checked }
-                    })
-                  }
-                />
-              </div>
+                  {/* Export button */}
+                  <Button size="lg" onClick={handleExport} className="w-full gap-2">
+                    <Download className="w-4 h-4" />
+                    {exported ? "Downloaded!" : `Export ${allPoems.length} ${allPoems.length === 1 ? "Poem" : "Poems"} as .${exportFormat}`}
+                  </Button>
+                </>
+              )}
+            </Card>
+          )}
 
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/20 transition-colors">
-                <div>
-                  <h3 className="font-semibold mb-1">Collections</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Display organized groups of poems by theme or series
-                  </p>
-                </div>
-                <Checkbox
-                  checked={preferences.sections.showCollections}
-                  onCheckedChange={(checked) =>
-                    setPreferences({
-                      ...preferences,
-                      sections: { ...preferences.sections, showCollections: !!checked }
-                    })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/20 transition-colors">
-                <div>
-                  <h3 className="font-semibold mb-1">Support Section</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Show Ink support area with call-to-action
-                  </p>
-                </div>
-                <Checkbox
-                  checked={preferences.sections.showSupport}
-                  onCheckedChange={(checked) =>
-                    setPreferences({
-                      ...preferences,
-                      sections: { ...preferences.sections, showSupport: !!checked }
-                    })
-                  }
-                />
-              </div>
-            </div>
-          </Card>
-
-          {/* Preview & Action Buttons */}
-          <Card className="p-6 bg-accent/10 border-primary/20">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          {/* Non-poet message */}
+          {!user.isPoet && (
+            <Card className="p-8 text-center">
+              <BookOpen className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+              <h2 className="font-serif text-xl font-bold text-foreground mb-2">No export data available</h2>
               <p className="text-sm text-muted-foreground">
-                💡 <strong>Tip:</strong> Save your changes, then visit your poet page to see the new design.
+                The export feature is available for poets. Start writing to unlock this feature.
               </p>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate(`/poet/${user.id}`)}
-                className="whitespace-nowrap"
-              >
-                Preview My Page
-              </Button>
-            </div>
-          </Card>
-
-          {/* Quick Reference */}
-          <Card className="p-6 bg-muted/30">
-            <h3 className="font-semibold mb-4 flex items-center gap-2">
-              <Eye className="w-5 h-5 text-primary" />
-              What Your Readers Will See
-            </h3>
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-start gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-                <p>
-                  <strong className="text-foreground">Typography:</strong> Affects all headings, poem titles, and your name display with <span className={`font-bold ${getFontClass(preferences.typography)}`}>{preferences.typography}</span> style
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-                <p>
-                  <strong className="text-foreground">Color Scheme:</strong> Changes background colors, text colors, and overall page mood to match <strong>{preferences.colorScheme.replace('-', ' ')}</strong> theme
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2"></div>
-                <p>
-                  <strong className="text-foreground">Section Visibility:</strong> Controls which content sections appear on your page — perfect for minimalist poets or those building gradually
-                </p>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          )}
         </div>
       </div>
     </div>
