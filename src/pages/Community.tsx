@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/auth";
@@ -20,7 +19,7 @@ import {
   getUnreadNotificationsCount
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
-import { Users, MessageCircle, Send, X, Feather, Clock, ChevronDown, ChevronLeft, ChevronRight, Reply, Bell } from "lucide-react";
+import { Users, MessageCircle, Send, X, Feather, Clock, Reply, Bell, Repeat2, Share, MoreHorizontal } from "lucide-react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
 
@@ -60,10 +59,6 @@ export default function Community() {
   const [showCompose, setShowCompose] = useState(false);
   const [newPostContent, setNewPostContent] = useState("");
   const [filter, setFilter] = useState<"all" | "following">("all");
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -79,7 +74,6 @@ export default function Community() {
       return;
     }
 
-    // Check if compose param is set
     if (searchParams.get("compose") === "true") {
       setShowCompose(true);
       setSearchParams({});
@@ -88,7 +82,6 @@ export default function Community() {
     loadPosts();
     loadNotifications();
 
-    // Poll for new notifications every 10 seconds
     const interval = setInterval(loadNotifications, 10000);
     return () => clearInterval(interval);
   }, [user, navigate, searchParams]);
@@ -113,11 +106,7 @@ export default function Community() {
     : posts;
 
   const handleCreatePost = () => {
-    if (!newPostContent.trim()) {
-      alert("Please write something");
-      return;
-    }
-
+    if (!newPostContent.trim()) return;
     if (newPostContent.length > 500) {
       alert("Updates must be under 500 characters");
       return;
@@ -150,33 +139,6 @@ export default function Community() {
 
   const getPoetInfo = (poetId: string) => {
     return mockPoets.find(p => p.id === poetId);
-  };
-
-  const handlePrevSlide = () => {
-    setCurrentSlide(prev => (prev === 0 ? adminBlogPosts.length - 1 : prev - 1));
-  };
-
-  const handleNextSlide = () => {
-    setCurrentSlide(prev => (prev === adminBlogPosts.length - 1 ? 0 : prev + 1));
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    const threshold = 50;
-    
-    if (diff > threshold) {
-      handleNextSlide();
-    } else if (diff < -threshold) {
-      handlePrevSlide();
-    }
   };
 
   const toggleComments = (postId: string) => {
@@ -222,50 +184,57 @@ export default function Community() {
     loadPosts();
   };
 
+  const getTimeAgo = (dateStr: string) => {
+    const now = new Date();
+    const date = new Date(dateStr);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "now";
+    if (diffMins < 60) return `${diffMins}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    if (diffDays < 7) return `${diffDays}d`;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
+
   const renderComment = (comment: Comment, postComments: Comment[], depth: number = 0) => {
     const replies = postComments.filter(c => c.parentCommentId === comment.id);
     const userClaps = getCommentClaps(user.id, comment.id);
     const isReplying = replyingTo === comment.id;
     
     return (
-      <div key={comment.id} className={`${depth > 0 ? 'ml-8 mt-3' : 'mt-4'} ${depth > 2 ? 'ml-4' : ''}`}>
-        <div className="flex gap-3">
-          <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-primary/10">
+      <div key={comment.id} className={`${depth > 0 ? 'ml-10 mt-2' : 'mt-3'}`}>
+        <div className="flex gap-2.5">
+          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-muted">
             {comment.userAvatar ? (
               <img src={comment.userAvatar} alt={comment.userName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Feather className="w-4 h-4 text-primary" />
+                <Feather className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
             )}
           </div>
           
           <div className="flex-1 min-w-0">
-            <div className="bg-muted/30 rounded-lg px-3 py-2">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm">{comment.userName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(comment.createdAt).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </span>
-              </div>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-                {comment.content}
-              </p>
+            <div className="flex items-center gap-1.5">
+              <span className="font-semibold text-sm text-foreground">{comment.userName}</span>
+              <span className="text-xs text-muted-foreground">{getTimeAgo(comment.createdAt)}</span>
             </div>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
+              {comment.content}
+            </p>
             
-            <div className="flex items-center gap-4 mt-1 ml-1">
+            <div className="flex items-center gap-5 mt-1.5">
               <button
                 onClick={() => handleCommentClap(comment.id)}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className={`flex items-center gap-1 text-xs transition-colors ${
+                  userClaps > 0 ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+                }`}
               >
-                <span>👏</span>
-                {comment.clapsCount > 0 && <span className="font-medium">{comment.clapsCount}</span>}
-                {userClaps > 0 && <span className="text-primary">({userClaps})</span>}
+                <Feather className="w-3 h-3" />
+                {comment.clapsCount > 0 && <span>{comment.clapsCount}</span>}
               </button>
               
               <button
@@ -283,7 +252,7 @@ export default function Community() {
                   value={commentInputs[comment.id] || ""}
                   onChange={(e) => setCommentInputs({ ...commentInputs, [comment.id]: e.target.value })}
                   placeholder={`Reply to ${comment.userName}...`}
-                  className="text-sm"
+                  className="text-sm h-8 border-muted bg-transparent"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -293,16 +262,18 @@ export default function Community() {
                 />
                 <Button
                   size="sm"
+                  variant="ghost"
                   onClick={() => handleCommentSubmit(comment.postId, comment.id)}
                   disabled={!commentInputs[comment.id]?.trim()}
+                  className="h-8 px-2 text-primary hover:text-primary hover:bg-primary/10"
                 >
-                  <Send className="w-3 h-3" />
+                  <Send className="w-3.5 h-3.5" />
                 </Button>
               </div>
             )}
             
             {replies.length > 0 && (
-              <div className="mt-2">
+              <div>
                 {replies.map(reply => renderComment(reply, postComments, depth + 1))}
               </div>
             )}
@@ -314,131 +285,129 @@ export default function Community() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Admin Blog Posts Carousel */}
-        <div className="mb-8 relative">
-          <div 
-            ref={carouselRef}
-            className="overflow-hidden"
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div 
-              className="flex transition-transform duration-300 ease-out"
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+      <div className="mx-auto max-w-xl">
+
+        {/* Sticky Tab Header */}
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="flex items-center justify-between px-4 py-3">
+            <h1 className="font-serif text-lg font-bold text-foreground">Community</h1>
+            <button 
+              onClick={() => navigate("/notifications")}
+              className="relative p-1.5 hover:bg-muted rounded-full transition-colors"
             >
+              <Bell className="w-5 h-5 text-foreground" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+          
+          {/* Filter Tabs */}
+          <div className="flex">
+            <button
+              onClick={() => setFilter("all")}
+              className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${
+                filter === "all" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              For you
+              {filter === "all" && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-primary rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setFilter("following")}
+              className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${
+                filter === "following" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              Following
+              {filter === "following" && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-primary rounded-full" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Blog Highlights - Compact inline strip */}
+        {adminBlogPosts.length > 0 && (
+          <div className="border-b border-border px-4 py-3">
+            <div className="flex items-center gap-2 mb-2.5">
+              <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">From WordStack</span>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
               {adminBlogPosts.map((post) => (
-                <div key={post.id} className="w-full flex-shrink-0 px-1">
-                  <Link to={`/blog/${post.id}`}>
-                    <Card className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-4 p-3">
-                      <img
-                        src={post.image}
-                        alt={post.title}
-                        className="w-20 h-20 object-cover rounded flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-muted-foreground mb-1">
-                          {post.category}
-                        </div>
-                        <h3 className="font-semibold text-sm mb-1 line-clamp-2 leading-snug">
-                          {post.title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          <span>{post.readTime}</span>
-                        </div>
-                      </div>
-                      <button className="flex-shrink-0 w-7 h-7 rounded-full hover:bg-accent flex items-center justify-center transition-colors">
-                        <X className="w-4 h-4 text-muted-foreground" />
-                      </button>
+                <Link
+                  key={post.id}
+                  to={`/blog/${post.id}`}
+                  className="flex-shrink-0 w-56 group"
+                >
+                  <div className="flex gap-2.5 items-start">
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] font-medium text-primary uppercase tracking-wide">{post.category}</span>
+                      <h4 className="text-xs font-semibold text-foreground line-clamp-2 leading-snug mt-0.5 group-hover:text-primary transition-colors">
+                        {post.title}
+                      </h4>
+                      <span className="text-[10px] text-muted-foreground mt-0.5 block">{post.readTime}</span>
                     </div>
-                  </Card>
-                  </Link>
-                </div>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
+        )}
 
-          {/* Navigation Buttons */}
-          <button
-            onClick={handlePrevSlide}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 w-8 h-8 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-colors z-10"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleNextSlide}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 w-8 h-8 rounded-full bg-background border border-border shadow-lg flex items-center justify-center hover:bg-accent transition-colors z-10"
-            aria-label="Next slide"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-
-          {/* Dots Indicator */}
-          <div className="flex items-center justify-center gap-2 mt-4">
-            {adminBlogPosts.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  currentSlide === index
-                    ? "bg-primary w-6"
-                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Filter and Notifications */}
-        <div className="mb-6 flex items-center justify-between">
-          <button className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <span>{filter === "all" ? "All Updates" : "Following"}</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
-          
-          <button className="relative p-2 hover:bg-accent rounded-lg transition-colors">
-            <Bell className="w-5 h-5 text-muted-foreground" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Compose Box */}
+        {/* Compose Area */}
         {user.isPoet && (
-          <Card className="p-4 mb-6">
+          <div className="border-b border-border">
             {!showCompose ? (
               <button
                 onClick={() => setShowCompose(true)}
-                className="w-full text-left px-4 py-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-muted-foreground"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/20 transition-colors"
               >
-                Share an update with your followers...
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Feather className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-muted-foreground text-[15px]">{"What's on your mind?"}</span>
               </button>
             ) : (
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Feather className="w-5 h-5 text-primary" />
+              <div className="px-4 py-3">
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Feather className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                    )}
                   </div>
                   <div className="flex-1">
                     <Textarea
                       value={newPostContent}
                       onChange={(e) => setNewPostContent(e.target.value)}
-                      placeholder="Share what you're working on, reading, or thinking about..."
-                      rows={4}
-                      className="resize-none"
+                      placeholder="Share what you're working on..."
+                      rows={3}
+                      className="resize-none border-0 bg-transparent p-0 text-[15px] leading-relaxed placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
                       maxLength={500}
                       autoFocus
                     />
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                      <span className={`text-xs ${newPostContent.length > 450 ? 'text-destructive' : 'text-muted-foreground'}`}>
                         {newPostContent.length}/500
                       </span>
                       <div className="flex gap-2">
@@ -449,16 +418,16 @@ export default function Community() {
                             setShowCompose(false);
                             setNewPostContent("");
                           }}
+                          className="text-muted-foreground h-8"
                         >
-                          <X className="w-4 h-4 mr-1" />
                           Cancel
                         </Button>
                         <Button
                           size="sm"
                           onClick={handleCreatePost}
                           disabled={!newPostContent.trim()}
+                          className="rounded-full px-4 h-8 font-semibold"
                         >
-                          <Send className="w-4 h-4 mr-1" />
                           Post
                         </Button>
                       </div>
@@ -467,28 +436,30 @@ export default function Community() {
                 </div>
               </div>
             )}
-          </Card>
+          </div>
         )}
 
         {/* Posts Feed */}
         {filteredPosts.length === 0 ? (
-          <Card className="p-12 text-center">
-            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-serif text-2xl font-bold mb-2">No Updates Yet</h3>
-            <p className="text-muted-foreground mb-6">
+          <div className="px-4 py-16 text-center">
+            <Users className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+            <h3 className="font-serif text-xl font-bold text-foreground mb-1">No updates yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
               {filter === "following"
                 ? "Poets you follow haven't posted any updates yet."
                 : "Be the first to share an update with the community."}
             </p>
             {user.isPoet && (
-              <Button onClick={() => setShowCompose(true)}>
-                <Send className="w-4 h-4 mr-2" />
-                Post Your First Update
+              <Button
+                onClick={() => setShowCompose(true)}
+                className="rounded-full px-5 font-semibold"
+              >
+                Post an update
               </Button>
             )}
-          </Card>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div>
             {filteredPosts.map(post => {
               const poet = getPoetInfo(post.poetId) || {
                 id: post.poetId,
@@ -498,12 +469,15 @@ export default function Community() {
               const userClaps = getPostClaps(user.id, post.id);
               
               return (
-                <Card key={post.id} className="p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-4">
+                <article
+                  key={post.id}
+                  className="border-b border-border px-4 py-3 hover:bg-muted/10 transition-colors"
+                >
+                  <div className="flex gap-3">
                     {/* Avatar */}
                     <button
                       onClick={() => navigate(`/poet/${poet.id}`)}
-                      className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 hover:ring-2 ring-primary transition-all"
+                      className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity mt-0.5"
                     >
                       {poet.avatar ? (
                         <img
@@ -512,64 +486,88 @@ export default function Community() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-primary/10 flex items-center justify-center">
-                          <Feather className="w-5 h-5 text-primary" />
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <Feather className="w-5 h-5 text-muted-foreground" />
                         </div>
                       )}
                     </button>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="mb-2">
-                        <button
-                          onClick={() => navigate(`/poet/${poet.id}`)}
-                          className="font-semibold hover:underline"
-                        >
-                          {poet.name}
+                      {/* Header row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <button
+                            onClick={() => navigate(`/poet/${poet.id}`)}
+                            className="font-semibold text-[15px] text-foreground hover:underline truncate"
+                          >
+                            {poet.name}
+                          </button>
+                          <span className="text-muted-foreground flex-shrink-0">·</span>
+                          <span className="text-sm text-muted-foreground flex-shrink-0">
+                            {getTimeAgo(post.createdAt)}
+                          </span>
+                        </div>
+                        <button className="p-1 -mr-1 hover:bg-muted rounded-full transition-colors flex-shrink-0">
+                          <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                         </button>
-                        <span className="text-sm text-muted-foreground ml-2">
-                          {new Date(post.createdAt).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric'
-                          })}
-                        </span>
                       </div>
                       
-                      <p className="leading-relaxed whitespace-pre-wrap mb-4">
+                      {/* Post body */}
+                      <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
                         {post.content}
                       </p>
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-4">
-                        <button
-                          onClick={() => handleClap(post.id)}
-                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <span className="text-base">👏</span>
-                          <span className="font-medium">{post.clapsCount}</span>
-                          {userClaps > 0 && <span className="text-primary text-xs">({userClaps})</span>}
-                        </button>
-                        
+                      {/* Action bar */}
+                      <div className="flex items-center justify-between mt-2 -ml-2 max-w-xs">
                         <button 
                           onClick={() => toggleComments(post.id)}
-                          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
+                          className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors group"
                         >
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{post.commentsCount}</span>
+                          <MessageCircle className="w-[18px] h-[18px]" />
+                          {post.commentsCount > 0 && (
+                            <span className="text-xs">{post.commentsCount}</span>
+                          )}
+                        </button>
+                        
+                        <button
+                          className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-green-600 hover:bg-green-600/10 transition-colors"
+                        >
+                          <Repeat2 className="w-[18px] h-[18px]" />
+                        </button>
+
+                        <button
+                          onClick={() => handleClap(post.id)}
+                          className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${
+                            userClaps > 0
+                              ? 'text-primary'
+                              : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                          }`}
+                        >
+                          <Feather className={`w-[18px] h-[18px] ${userClaps > 0 ? 'fill-primary/30' : ''}`} />
+                          {post.clapsCount > 0 && (
+                            <span className="text-xs">{post.clapsCount}</span>
+                          )}
+                        </button>
+
+                        <button
+                          className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                        >
+                          <Share className="w-[18px] h-[18px]" />
                         </button>
                       </div>
                       
                       {/* Comments Section */}
                       {expandedComments.has(post.id) && (
-                        <div className="mt-4 pt-4 border-t border-border">
+                        <div className="mt-2 pt-2 border-t border-border/50">
                           {/* Comment Input */}
-                          <div className="flex gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-primary/10">
+                          <div className="flex gap-2.5">
+                            <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-muted">
                               {user.avatar ? (
                                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <Feather className="w-4 h-4 text-primary" />
+                                  <Feather className="w-3.5 h-3.5 text-muted-foreground" />
                                 </div>
                               )}
                             </div>
@@ -577,8 +575,8 @@ export default function Community() {
                               <Input
                                 value={commentInputs[post.id] || ""}
                                 onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                placeholder="Write a comment... (use @name to mention)"
-                                className="text-sm"
+                                placeholder="Post your reply..."
+                                className="text-sm h-8 border-muted bg-transparent rounded-full px-3"
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
@@ -588,23 +586,25 @@ export default function Community() {
                               />
                               <Button
                                 size="sm"
+                                variant="ghost"
                                 onClick={() => handleCommentSubmit(post.id)}
                                 disabled={!commentInputs[post.id]?.trim()}
+                                className="h-8 px-2 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
                               >
-                                <Send className="w-3 h-3" />
+                                <Send className="w-3.5 h-3.5" />
                               </Button>
                             </div>
                           </div>
                           
                           {/* Comments List */}
-                          <div className="space-y-1">
+                          <div>
                             {getComments(post.id)
                               .filter(c => !c.parentCommentId)
                               .map(comment => renderComment(comment, getComments(post.id)))
                             }
                             {post.commentsCount === 0 && (
-                              <p className="text-sm text-muted-foreground text-center py-4">
-                                No comments yet. Be the first to comment!
+                              <p className="text-xs text-muted-foreground text-center py-4">
+                                No replies yet. Start the conversation.
                               </p>
                             )}
                           </div>
@@ -612,7 +612,7 @@ export default function Community() {
                       )}
                     </div>
                   </div>
-                </Card>
+                </article>
               );
             })}
           </div>
