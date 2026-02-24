@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Zap,
   Lock,
+  Star,
 } from "lucide-react";
 
 export default function Challenges() {
@@ -32,6 +33,23 @@ export default function Challenges() {
     () => mockChallenges.filter((c) => c.status === "past"),
     []
   );
+
+  // Get all winners across challenges
+  const allWinners = useMemo(() => {
+    const winners = [];
+    pastChallenges.forEach((challenge) => {
+      challenge.entries.forEach((entry) => {
+        if (entry.isWinner) {
+          winners.push({
+            ...entry,
+            challengeId: challenge.id,
+            challengeTitle: challenge.title,
+          });
+        }
+      });
+    });
+    return winners.slice(0, 6); // Show last 6 winners
+  }, [pastChallenges]);
 
   const daysRemaining = (challenge: typeof mockChallenges[0]) => {
     return Math.ceil(
@@ -144,22 +162,71 @@ export default function Challenges() {
         )}
 
         {/* Recent Winners Section */}
-        {pastChallenges.length > 0 && (
+        {allWinners.length > 0 && (
           <section className="mb-16">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-serif text-2xl font-bold text-foreground flex items-center gap-2">
                 <Trophy className="w-6 h-6 text-primary" />
                 Recent Winners
               </h2>
-              {pastChallenges.length > 3 && (
-                <Button variant="ghost" className="gap-1">
-                  View All <ChevronRight className="w-4 h-4" />
-                </Button>
-              )}
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pastChallenges.slice(0, 3).map((challenge) => (
-                <ChallengeCard key={challenge.id} challenge={challenge} />
+              {allWinners.map((winner) => (
+                <Card key={winner.id} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+                  {/* Winner Header with Trophy Badge */}
+                  <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 flex items-start justify-between">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {/* Poet Avatar */}
+                      <img
+                        src={winner.poetAvatar}
+                        alt={winner.poetName}
+                        className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        {/* Poet Name - Link to Profile */}
+                        <button
+                          onClick={() => navigate(`/poet/${winner.poetId}`)}
+                          className="text-sm font-semibold text-foreground hover:text-primary transition-colors text-left"
+                        >
+                          {winner.poetName}
+                        </button>
+                        {/* Challenge Name - Link to Challenge */}
+                        <button
+                          onClick={() => navigate(`/challenge/${winner.challengeId}`)}
+                          className="text-xs text-muted-foreground hover:text-primary transition-colors text-left line-clamp-1"
+                        >
+                          {winner.challengeTitle}
+                        </button>
+                      </div>
+                    </div>
+                    <Trophy className="w-5 h-5 text-yellow-500 flex-shrink-0 ml-2" />
+                  </div>
+
+                  {/* Winning Poem */}
+                  <div className="p-4 flex-1 flex flex-col">
+                    {/* Poem Title - Link to Poem Page */}
+                    <button
+                      onClick={() => navigate(`/poem/${winner.poemId}`)}
+                      className="font-serif font-bold text-foreground hover:text-primary transition-colors text-left mb-2 line-clamp-2"
+                    >
+                      {winner.poemTitle}
+                    </button>
+                    {/* Poem Preview */}
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
+                      {winner.poemPreview}
+                    </p>
+                    {/* Winner Badge */}
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-yellow-500/20 text-yellow-700 border-yellow-500/30">
+                        <Star className="w-3 h-3 mr-1" />
+                        Winner
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {winner.inkReceived} Ink
+                      </span>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
           </section>
