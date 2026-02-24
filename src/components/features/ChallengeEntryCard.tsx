@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,8 @@ interface ChallengeEntryCardProps {
 }
 
 export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
+  const navigate = useNavigate();
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -19,8 +22,12 @@ export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
       .slice(0, 2);
   };
 
+  const handleCardClick = () => {
+    navigate(`/poem/${entry.poemId}`);
+  };
+
   return (
-    <Card className="p-6 hover:shadow-lg transition-all cursor-pointer border-l-2 border-l-primary/20 hover:border-l-primary">
+    <Card className="p-6 hover:shadow-lg transition-all cursor-pointer border-l-2 border-l-primary/20 hover:border-l-primary" onClick={handleCardClick}>
       <div className="flex items-start gap-4">
         {/* Avatar */}
         <Avatar className="w-12 h-12 flex-shrink-0">
@@ -75,11 +82,11 @@ export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
             </div>
 
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <button className="hover:text-primary transition-colors flex items-center gap-1">
+              <button className="hover:text-primary transition-colors flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <Heart className="w-4 h-4" />
                 {entry.inkReceived}
               </button>
-              <button className="hover:text-primary transition-colors flex items-center gap-1">
+              <button className="hover:text-primary transition-colors flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <MessageCircle className="w-4 h-4" />
                 Comments
               </button>
@@ -92,6 +99,7 @@ export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
           variant="ghost"
           size="sm"
           className="flex-shrink-0"
+          onClick={(e) => e.stopPropagation()}
         >
           <Zap className="w-4 h-4" />
         </Button>
