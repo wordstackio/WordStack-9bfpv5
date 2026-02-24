@@ -10,7 +10,7 @@ import {
   Clock,
   Flame,
   ChevronRight,
-  Zap,
+  Droplets,
   Lock,
   Star,
 } from "lucide-react";
@@ -112,7 +112,7 @@ export default function Challenges() {
                 )}
               </div>
               <div className="text-right flex items-center gap-1">
-                <Zap className="w-4 h-4 text-yellow-400" />
+                <Droplets className="w-4 h-4 text-blue-400" />
                 <span className="text-sm font-bold text-white">
                   {challenge.prizePool}
                 </span>
