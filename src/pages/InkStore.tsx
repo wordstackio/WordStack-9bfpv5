@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth";
 import { ArrowLeft, ShoppingCart, Sparkles, Lock } from "lucide-react";
-import poetsSpark from "@/assets/ink-packages/poets-spark.png";
-import verseBuilder from "@/assets/ink-packages/verse-builder.png";
-import risingPoet from "@/assets/ink-packages/rising-poet.png";
-import epicFlow from "@/assets/ink-packages/epic-flow.png";
-import legendaryQuill from "@/assets/ink-packages/legendary-quill.png";
+import poetsSpark from "@/assets/ink-packages/poets-spark.jpg";
+import verseBuilder from "@/assets/ink-packages/verse-builder.jpg";
+import risingPoet from "@/assets/ink-packages/rising-poet.jpg";
+import epicFlow from "@/assets/ink-packages/epic-flow.jpg";
+import legendaryQuill from "@/assets/ink-packages/legendary-quill.jpg";
 
 interface InkPackage {
   id: string;
