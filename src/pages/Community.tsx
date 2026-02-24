@@ -8,8 +8,8 @@ import {
   getCommunityPosts, 
   createCommunityPost, 
   getFollows,
-  clapPost,
-  getPostClaps,
+  togglePostLike,
+  getPostLiked,
   canUseInk,
   getFreeInkUsage,
   getComments,
@@ -19,7 +19,7 @@ import {
   getUnreadNotificationsCount
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
-import { Users, MessageCircle, Send, X, Feather, Clock, Reply, Bell, Repeat2, Share, MoreHorizontal } from "lucide-react";
+import { Users, MessageCircle, Send, X, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart } from "lucide-react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
 
@@ -118,23 +118,28 @@ export default function Community() {
     loadPosts();
   };
 
-  const handleClap = (postId: string) => {
+  const handleLike = (postId: string) => {
     if (!user) return;
-    
-    const check = canUseInk(user.id);
-    if (!check.canUse) {
-      const usage = getFreeInkUsage(user.id);
-      setOutOfInkInfo({
-        dailyUsed: usage.dailyUsed,
-        monthlyUsed: usage.monthlyUsed,
-        timeUntilReset: check.timeUntilReset || "tomorrow"
-      });
-      setShowOutOfInkModal(true);
-      return;
-    }
-    
-    clapPost(user.id, postId);
+    togglePostLike(user.id, postId);
     loadPosts();
+  };
+
+  const handleShare = async (post: CommunityPost) => {
+    const shareData = {
+      title: `${post.poetName} on WordStack`,
+      text: post.content.length > 140 ? post.content.slice(0, 137) + "..." : post.content,
+      url: `${window.location.origin}/community?post=${post.id}`
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // User cancelled or share failed silently
+      }
+    } else {
+      await navigator.clipboard.writeText(shareData.url);
+    }
   };
 
   const getPoetInfo = (poetId: string) => {
@@ -289,19 +294,12 @@ export default function Community() {
 
         {/* Sticky Tab Header */}
         <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="flex items-center justify-between px-4 py-3">
-            <h1 className="font-serif text-lg font-bold text-foreground">Community</h1>
-            <button 
-              onClick={() => navigate("/notifications")}
-              className="relative p-1.5 hover:bg-muted rounded-full transition-colors"
-            >
-              <Bell className="w-5 h-5 text-foreground" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
+          <div className="px-4 py-2.5">
+            <p className="text-[13px] leading-snug text-muted-foreground">
+              {user.isPoet
+                ? "Share updates, connect with readers, and see what fellow poets are up to."
+                : "See what your favorite poets are sharing, join conversations, and discover new voices."}
+            </p>
           </div>
           
           {/* Filter Tabs */}
@@ -466,7 +464,7 @@ export default function Community() {
                 name: post.poetName,
                 avatar: post.poetAvatar
               };
-              const userClaps = getPostClaps(user.id, post.id);
+              const isLiked = getPostLiked(user.id, post.id);
               
               return (
                 <article
@@ -537,20 +535,21 @@ export default function Community() {
                         </button>
 
                         <button
-                          onClick={() => handleClap(post.id)}
+                          onClick={() => handleLike(post.id)}
                           className={`flex items-center gap-1.5 p-2 rounded-full transition-colors ${
-                            userClaps > 0
-                              ? 'text-primary'
-                              : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                            isLiked
+                              ? 'text-rose-500'
+                              : 'text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10'
                           }`}
                         >
-                          <Feather className={`w-[18px] h-[18px] ${userClaps > 0 ? 'fill-primary/30' : ''}`} />
-                          {post.clapsCount > 0 && (
-                            <span className="text-xs">{post.clapsCount}</span>
+                          <Heart className={`w-[18px] h-[18px] ${isLiked ? 'fill-rose-500' : ''}`} />
+                          {(post.likesCount || 0) > 0 && (
+                            <span className="text-xs">{post.likesCount}</span>
                           )}
                         </button>
 
                         <button
+                          onClick={() => handleShare(post)}
                           className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                         >
                           <Share className="w-[18px] h-[18px]" />

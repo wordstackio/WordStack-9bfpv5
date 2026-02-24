@@ -104,6 +104,7 @@ export interface CommunityPost {
   content: string;
   createdAt: string;
   clapsCount: number;
+  likesCount: number;
   commentsCount: number;
 }
 

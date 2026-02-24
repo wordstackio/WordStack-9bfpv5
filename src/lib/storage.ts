@@ -531,6 +531,39 @@ export function getPostClaps(userId: string, postId: string): number {
   return claps[postId] || 0;
 }
 
+// Post Likes Management (no ink cost, toggle behavior)
+const POST_LIKES_KEY = "ws_post_likes_";
+
+export function togglePostLike(userId: string, postId: string): boolean {
+  const likesKey = POST_LIKES_KEY + userId;
+  const stored = localStorage.getItem(likesKey);
+  const likes: Record<string, boolean> = stored ? JSON.parse(stored) : {};
+
+  const isCurrentlyLiked = !!likes[postId];
+  const posts = getCommunityPosts();
+  const post = posts.find(p => p.id === postId);
+
+  if (isCurrentlyLiked) {
+    delete likes[postId];
+    if (post) post.likesCount = Math.max(0, (post.likesCount || 0) - 1);
+  } else {
+    likes[postId] = true;
+    if (post) post.likesCount = (post.likesCount || 0) + 1;
+  }
+
+  localStorage.setItem(likesKey, JSON.stringify(likes));
+  localStorage.setItem(COMMUNITY_POSTS_KEY, JSON.stringify(posts));
+
+  return !isCurrentlyLiked; // returns new state: true = liked, false = unliked
+}
+
+export function getPostLiked(userId: string, postId: string): boolean {
+  const likesKey = POST_LIKES_KEY + userId;
+  const stored = localStorage.getItem(likesKey);
+  const likes: Record<string, boolean> = stored ? JSON.parse(stored) : {};
+  return !!likes[postId];
+}
+
 // Comments Management
 import { Comment, Notification } from "@/types";
 
