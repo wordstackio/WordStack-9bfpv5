@@ -113,7 +113,7 @@ export default function ChallengeDetail() {
                     <p className="text-xs text-white/70 mb-2 uppercase tracking-wide">Ink Cost</p>
                     <p className="text-3xl font-bold text-white flex items-center gap-1">
                       <Droplets className="w-5 h-5 text-blue-400" />
-                      {activeChallenge.inkCost}
+                      {challenge.inkCost}
                     </p>
                   </div>
               </div>
