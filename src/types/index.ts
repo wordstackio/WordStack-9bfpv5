@@ -171,3 +171,32 @@ export interface AccountDeletionRequest {
   reason: string;
   createdAt: string;
 }
+
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  theme: string;
+  deadlineDate: string;
+  inkCost: number;
+  status: "active" | "closed" | "past";
+  entries: ChallengeEntry[];
+  createdAt: string;
+  winners?: string[]; // poemIds of winning entries
+  prizePool?: number;
+}
+
+export interface ChallengeEntry {
+  id: string;
+  challengeId: string;
+  poemId: string;
+  poetId: string;
+  poetName: string;
+  poetAvatar?: string;
+  poemTitle: string;
+  poemPreview: string; // first 3-5 lines
+  submittedAt: string;
+  inkReceived: number;
+  isShortlisted?: boolean;
+  isWinner?: boolean;
+}

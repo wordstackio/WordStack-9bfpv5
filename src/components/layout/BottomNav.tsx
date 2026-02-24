@@ -29,8 +29,8 @@ export default function BottomNav() {
     },
     {
       id: "profile",
-      path: user.isPoet ? `/poet/${user.id}` : "/feed",
-      icon: user.isPoet ? User : Heart,
+      path: user.isPoet ? "/challenges" : `/poet/${user.id}`,
+      icon: user.isPoet ? Heart : User,
       label: user.isPoet ? "Challenges" : "Profile"
     }
   ];

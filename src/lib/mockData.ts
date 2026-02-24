@@ -1,4 +1,4 @@
-import { Poet, Poem, Update, Collection, Spotlight, Comment } from "@/types";
+import { Poet, Poem, Update, Collection, Spotlight, Comment, Challenge, ChallengeEntry } from "@/types";
 
 // Mock Poets
 export const mockPoets: Poet[] = [
@@ -368,5 +368,116 @@ export const mockSpotlight: Spotlight[] = [
     poetId: "poet-1",
     createdAt: "2024-11-22",
     expiresAt: "2024-11-23"
+  }
+];
+
+// Mock Challenges
+export const mockChallenges: Challenge[] = [
+  {
+    id: "challenge-1",
+    title: "Mirror & Memory",
+    theme: "This Month's Challenge: Mirror & Memory",
+    description: "Explore the intersection of reflection and remembrance. Write about moments when the past catches us off guard, or when we see ourselves differently than we expect.",
+    deadlineDate: "2024-12-10",
+    inkCost: 10,
+    status: "active",
+    prizePool: 500,
+    createdAt: "2024-11-01",
+    entries: [
+      {
+        id: "entry-1",
+        challengeId: "challenge-1",
+        poemId: "poem-1",
+        poetId: "poet-1",
+        poetName: "Elena Rivera",
+        poetAvatar: mockPoets[0].avatar,
+        poemTitle: "Morning Dew on Cedar",
+        poemPreview: "The forest holds its breath at dawn,\neach needle weighted with the night,\ndroplets catching first light—",
+        submittedAt: "2024-11-20",
+        inkReceived: 45,
+        isShortlisted: true
+      },
+      {
+        id: "entry-2",
+        challengeId: "challenge-1",
+        poemId: "poem-3",
+        poetId: "poet-3",
+        poetName: "Aria Blackwood",
+        poetAvatar: mockPoets[2].avatar,
+        poemTitle: "The Raven's Last Confession",
+        poemPreview: "I watched you from the old oak tree,\ncounting your secrets like fallen leaves.\nThe moon was a witness, pale and silent,",
+        submittedAt: "2024-11-22",
+        inkReceived: 68,
+        isShortlisted: true,
+        isWinner: true
+      },
+      {
+        id: "entry-3",
+        challengeId: "challenge-1",
+        poemId: "poem-4",
+        poetId: "poet-1",
+        poetName: "Elena Rivera",
+        poetAvatar: mockPoets[0].avatar,
+        poemTitle: "Inheritance",
+        poemPreview: "My grandmother left me\nher silence—the kind that settles\nlike dust on photographs,",
+        submittedAt: "2024-11-23",
+        inkReceived: 38,
+        isShortlisted: false
+      }
+    ]
+  },
+  {
+    id: "challenge-2",
+    title: "Urban Solitude",
+    theme: "Urban Solitude",
+    description: "Write about loneliness in crowded places. The paradox of feeling isolated in the heart of the city.",
+    deadlineDate: "2024-10-20",
+    inkCost: 10,
+    status: "past",
+    prizePool: 500,
+    createdAt: "2024-09-01",
+    winners: ["poem-2"],
+    entries: [
+      {
+        id: "entry-4",
+        challengeId: "challenge-2",
+        poemId: "poem-2",
+        poetId: "poet-2",
+        poetName: "Marcus Chen",
+        poetAvatar: mockPoets[1].avatar,
+        poemTitle: "3 AM Subway",
+        poemPreview: "Fluorescent hum, empty platform.\nA woman counts change.\nThe tunnel breathes warm, stale air.",
+        submittedAt: "2024-10-15",
+        inkReceived: 32,
+        isWinner: true
+      }
+    ]
+  },
+  {
+    id: "challenge-3",
+    title: "Whispers of Nature",
+    theme: "Whispers of Nature",
+    description: "Explore the quiet voices of the natural world.",
+    deadlineDate: "2024-09-15",
+    inkCost: 10,
+    status: "past",
+    prizePool: 500,
+    createdAt: "2024-08-01",
+    winners: ["poem-1"],
+    entries: [
+      {
+        id: "entry-5",
+        challengeId: "challenge-3",
+        poemId: "poem-1",
+        poetId: "poet-1",
+        poetName: "Elena Rivera",
+        poetAvatar: mockPoets[0].avatar,
+        poemTitle: "Morning Dew on Cedar",
+        poemPreview: "The forest holds its breath at dawn,\neach needle weighted with the night,\ndroplets catching first light—",
+        submittedAt: "2024-09-10",
+        inkReceived: 45,
+        isWinner: true
+      }
+    ]
   }
 ];
