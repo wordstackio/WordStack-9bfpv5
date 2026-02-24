@@ -60,16 +60,6 @@ export default function ChallengeEntryCard({ entry }: ChallengeEntryCardProps) {
               <Badge variant="secondary" className="text-xs">
                 Challenge Entry
               </Badge>
-              {entry.isWinner && (
-                <Badge className="text-xs bg-yellow-500 hover:bg-yellow-600">
-                  Winner
-                </Badge>
-              )}
-              {entry.isShortlisted && !entry.isWinner && (
-                <Badge className="text-xs bg-primary/20 text-primary hover:bg-primary/30">
-                  Shortlisted
-                </Badge>
-              )}
             </div>
 
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
