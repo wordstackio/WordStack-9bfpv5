@@ -292,44 +292,7 @@ export default function Community() {
     <div className="min-h-screen bg-background pb-20">
       <div className="mx-auto max-w-xl">
 
-        {/* Sticky Tab Header */}
-        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="px-4 py-2.5">
-            <p className="text-[13px] leading-snug text-muted-foreground">
-              {user.isPoet
-                ? "Share updates, connect with readers, and see what fellow poets are up to."
-                : "See what your favorite poets are sharing, join conversations, and discover new voices."}
-            </p>
-          </div>
-          
-          {/* Filter Tabs */}
-          <div className="flex">
-            <button
-              onClick={() => setFilter("all")}
-              className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${
-                filter === "all" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
-            >
-              For you
-              {filter === "all" && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-primary rounded-full" />
-              )}
-            </button>
-            <button
-              onClick={() => setFilter("following")}
-              className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${
-                filter === "following" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-              }`}
-            >
-              Following
-              {filter === "following" && (
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-primary rounded-full" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Blog Highlights - Compact inline strip */}
+        {/* Blog Highlights - Right after header */}
         {adminBlogPosts.length > 0 && (
           <div className="border-b border-border px-4 py-3">
             <div className="flex items-center gap-2 mb-2.5">
@@ -362,6 +325,43 @@ export default function Community() {
             </div>
           </div>
         )}
+
+        {/* Contextual sentence - centered */}
+        <div className="px-4 py-3 border-b border-border">
+          <p className="text-[13px] leading-snug text-muted-foreground text-center">
+            {user.isPoet
+              ? "Share updates, connect with readers, and see what fellow poets are up to."
+              : "See what your favorite poets are sharing, join conversations, and discover new voices."}
+          </p>
+        </div>
+
+        {/* Sticky Tab Header */}
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
+          <div className="flex">
+            <button
+              onClick={() => setFilter("all")}
+              className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${
+                filter === "all" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              For you
+              {filter === "all" && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-primary rounded-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setFilter("following")}
+              className={`flex-1 py-3 text-sm font-medium text-center relative transition-colors ${
+                filter === "following" ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              Following
+              {filter === "following" && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-0.5 bg-primary rounded-full" />
+              )}
+            </button>
+          </div>
+        </div>
 
         {/* Compose Area */}
         {user.isPoet && (
