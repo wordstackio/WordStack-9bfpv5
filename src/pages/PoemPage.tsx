@@ -1,9 +1,9 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useCallback } from "react";
-import { MessageCircle, User, Share2, Bookmark } from "lucide-react";
-import { mockPoems, mockPoets, mockPoemComments } from "@/lib/mockData";
+import { useState, useCallback, useMemo } from "react";
+import { MessageCircle, User, Share2, Bookmark, Sparkles } from "lucide-react";
+import { mockPoems, mockPoets, mockPoemComments, mockSpotlight } from "@/lib/mockData";
 import { getCurrentUser } from "@/lib/auth";
-import { clapPoem, getPoemClaps, getUserPoemClaps, getPoemComments, canUseInk, getFreeInkUsage } from "@/lib/storage";
+import { clapPoem, getPoemClaps, getUserPoemClaps, getPoemComments, canUseInk, getFreeInkUsage, getActiveSpotlights } from "@/lib/storage";
 import { shortTimeAgo } from "@/lib/utils";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
 import ClappersModal from "@/components/features/ClappersModal";
@@ -61,6 +61,31 @@ export default function PoemPage() {
   // Get other poems from the same poet (excluding current poem)
   const poet = mockPoets.find(p => p.id === poem.poetId);
   const moreFromPoet = mockPoems.filter(p => p.poetId === poem.poetId && p.id !== poem.id);
+
+  // Boosted poems: merge mock spotlight + user-boosted spotlights, randomize, pick up to 2
+  const boostedPoems = useMemo(() => {
+    const userSpotlights = getActiveSpotlights();
+    const mockSpotlightIds = mockSpotlight.map(s => s.poemId);
+    const userSpotlightIds = userSpotlights.map(s => s.poemId);
+    const allBoostedIds = [...new Set([...mockSpotlightIds, ...userSpotlightIds])];
+
+    // Exclude the current poem
+    const filtered = allBoostedIds.filter(pid => pid !== poem.id);
+
+    // Get full poem objects
+    const allPoems = [...mockPoems];
+    const boosted = filtered
+      .map(pid => allPoems.find(p => p.id === pid))
+      .filter(Boolean) as typeof mockPoems;
+
+    // Shuffle (Fisher-Yates)
+    for (let i = boosted.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [boosted[i], boosted[j]] = [boosted[j], boosted[i]];
+    }
+
+    return boosted.slice(0, 2);
+  }, [poem.id]);
 
   const handleClap = () => {
     if (!user) {
@@ -194,6 +219,51 @@ export default function PoemPage() {
           </Link>
         </div>
 
+        {/* Boosted Poems */}
+        <div className="py-5 border-t border-border/30">
+          {boostedPoems.length > 0 ? (
+            <div className="space-y-4">
+              {boostedPoems.map((bp) => {
+                const previewLines = bp.content
+                  .split("\n")
+                  .filter((l) => l.trim())
+                  .slice(0, 2)
+                  .join(" ");
+                return (
+                  <Link
+                    key={bp.id}
+                    to={`/poem/${bp.id}`}
+                    className="block group"
+                  >
+                    <h3 className="font-serif text-base font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
+                      {bp.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
+                      {previewLines}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        by {bp.poetName}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60 font-medium px-1.5 py-0.5 rounded bg-muted/50">
+                        <Sparkles className="w-3 h-3" />
+                        Boosted
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">
+                {user?.isPoet
+                  ? "No poems in the Boost pool right now. Boost one of yours from your dashboard to get featured here."
+                  : "No boosted poems right now. Check back soon for featured works from poets."}
+              </p>
+            </div>
+          )}
+        </div>
       </article>
 
       {/* More from this Poet */}
