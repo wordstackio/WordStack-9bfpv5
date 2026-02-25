@@ -123,7 +123,7 @@ export interface CommunityPost {
   poetAvatar?: string;
   content: string;
   images?: string[];
-  link?: { url: string; title?: string; description?: string };
+  link?: { url: string; title?: string; description?: string; image?: string; domain?: string };
   poll?: PostPoll;
   quote?: QuoteRef;
   createdAt: string;

@@ -19,8 +19,32 @@ import {
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
 import { Users, MessageCircle, Send, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart, ExternalLink, BarChart3, Quote } from "lucide-react";
+import { Fragment } from "react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
+
+// Linkify URLs in text
+function linkifyText(text: string) {
+  const splitRegex = /(https?:\/\/[^\s<]+)/gi;
+  const parts = text.split(splitRegex);
+  return parts.map((part, i) => {
+    if (/^https?:\/\//i.test(part)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline break-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
 
 // Mock admin blog posts
 const adminBlogPosts = [
@@ -453,7 +477,7 @@ export default function Community() {
                       {/* Post body */}
                       {post.content && (
                         <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
-                          {post.content}
+                          {linkifyText(post.content)}
                         </p>
                       )}
 
@@ -485,26 +509,41 @@ export default function Community() {
                         </div>
                       )}
 
-                      {/* Attached Link */}
+                      {/* Attached Link Card */}
                       {post.link && (
                         <a
                           href={post.link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-2.5 block border border-border rounded-xl overflow-hidden hover:bg-muted/30 transition-colors"
+                          className="mt-2.5 block border border-border rounded-2xl overflow-hidden hover:bg-muted/20 transition-colors group/link"
                         >
-                          <div className="px-3.5 py-3 flex items-center gap-2">
-                            <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              {post.link.title && (
-                                <p className="text-sm font-semibold text-foreground truncate">
-                                  {post.link.title}
-                                </p>
-                              )}
-                              <p className="text-xs text-muted-foreground truncate">
-                                {post.link.url}
-                              </p>
+                          {post.link.image && (
+                            <div className="aspect-[1.91/1] bg-muted relative">
+                              <img
+                                src={post.link.image}
+                                alt={post.link.title || "Link preview"}
+                                className="w-full h-full object-cover"
+                                crossOrigin="anonymous"
+                              />
                             </div>
+                          )}
+                          <div className="px-3.5 py-2.5">
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              {post.link.domain || (() => {
+                                try { return new URL(post.link!.url).hostname.replace("www.", ""); } catch { return post.link!.url; }
+                              })()}
+                            </p>
+                            {post.link.title && (
+                              <p className="text-sm font-semibold text-foreground leading-snug mt-0.5 line-clamp-2 group-hover/link:text-primary transition-colors">
+                                {post.link.title}
+                              </p>
+                            )}
+                            {post.link.description && (
+                              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                                {post.link.description}
+                              </p>
+                            )}
                           </div>
                         </a>
                       )}

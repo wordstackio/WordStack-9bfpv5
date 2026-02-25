@@ -16,9 +16,109 @@ import {
   Feather,
   Globe,
   ChevronDown,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 
 type AttachmentMode = null | "image" | "link" | "poll" | "quote";
+
+// Extract domain from URL
+function extractDomain(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.hostname.replace("www.", "");
+  } catch {
+    return url;
+  }
+}
+
+// Extract first URL from text
+function extractUrl(text: string): string | null {
+  const urlRegex = /(https?:\/\/[^\s<]+)/gi;
+  const match = text.match(urlRegex);
+  return match ? match[0] : null;
+}
+
+// Known site metadata for realistic previews (simulates OG fetch)
+const KNOWN_SITES: Record<string, { title: string; description: string; image: string }> = {
+  "youtube.com": {
+    title: "YouTube",
+    description: "Enjoy the videos and music you love, upload original content, and share it all with the world.",
+    image: "https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=600&h=314&fit=crop",
+  },
+  "twitter.com": {
+    title: "X (formerly Twitter)",
+    description: "The platform for public conversation.",
+    image: "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=600&h=314&fit=crop",
+  },
+  "x.com": {
+    title: "X (formerly Twitter)",
+    description: "The platform for public conversation.",
+    image: "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=600&h=314&fit=crop",
+  },
+  "github.com": {
+    title: "GitHub",
+    description: "Where the world builds software. Millions of developers use GitHub to build and ship software.",
+    image: "https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=600&h=314&fit=crop",
+  },
+  "medium.com": {
+    title: "Medium",
+    description: "Where good ideas find you. Read and share new perspectives on just about any topic.",
+    image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&h=314&fit=crop",
+  },
+  "spotify.com": {
+    title: "Spotify",
+    description: "Listen to music and podcasts for free.",
+    image: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=600&h=314&fit=crop",
+  },
+  "instagram.com": {
+    title: "Instagram",
+    description: "Create and share photos and videos with the people who matter most.",
+    image: "https://images.unsplash.com/photo-1611262588024-d12430b98920?w=600&h=314&fit=crop",
+  },
+};
+
+// Simulate OG data fetch (in production, this would be a server endpoint)
+async function fetchLinkPreview(url: string): Promise<{
+  url: string;
+  title: string;
+  description: string;
+  image?: string;
+  domain: string;
+}> {
+  const domain = extractDomain(url);
+
+  // Simulate network delay
+  await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
+
+  // Check known sites
+  const known = Object.entries(KNOWN_SITES).find(([key]) => domain.includes(key));
+  if (known) {
+    return {
+      url,
+      title: known[1].title,
+      description: known[1].description,
+      image: known[1].image,
+      domain,
+    };
+  }
+
+  // Generate realistic-looking fallback from URL/domain
+  const pathParts = new URL(url).pathname.split("/").filter(Boolean);
+  const titleFromPath = pathParts.length > 0
+    ? pathParts[pathParts.length - 1]
+        .replace(/[-_]/g, " ")
+        .replace(/\.\w+$/, "")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : domain;
+
+  return {
+    url,
+    title: titleFromPath || domain,
+    description: `Content from ${domain}`,
+    domain,
+  };
+}
 
 export default function ComposePage() {
   const navigate = useNavigate();
@@ -32,9 +132,21 @@ export default function ComposePage() {
   const [images, setImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Link state
-  const [linkUrl, setLinkUrl] = useState("");
-  const [linkTitle, setLinkTitle] = useState("");
+  // Link state (auto-detected)
+  const [detectedLink, setDetectedLink] = useState<{
+    url: string;
+    title: string;
+    description: string;
+    image?: string;
+    domain: string;
+  } | null>(null);
+  const [isLoadingLink, setIsLoadingLink] = useState(false);
+  const [dismissedUrls, setDismissedUrls] = useState<Set<string>>(new Set());
+  const lastDetectedUrl = useRef<string | null>(null);
+
+  // Manual link state (fallback)
+  const [manualLinkUrl, setManualLinkUrl] = useState("");
+  const [manualLinkTitle, setManualLinkTitle] = useState("");
 
   // Poll state
   const [pollOptions, setPollOptions] = useState(["", ""]);
@@ -43,9 +155,6 @@ export default function ComposePage() {
   // Quote state
   const [selectedQuote, setSelectedQuote] = useState<QuoteRef | null>(null);
   const [quoteSearch, setQuoteSearch] = useState("");
-
-  // Audience
-  const [audience, setAudience] = useState<"everyone">("everyone");
 
   useEffect(() => {
     if (!user) {
@@ -56,7 +165,6 @@ export default function ComposePage() {
       navigate("/community");
       return;
     }
-    // Auto-focus textarea
     setTimeout(() => textareaRef.current?.focus(), 100);
   }, [user, navigate]);
 
@@ -72,11 +180,43 @@ export default function ComposePage() {
     handleTextareaResize();
   }, [content, handleTextareaResize]);
 
+  // Auto-detect URLs in content
+  useEffect(() => {
+    const url = extractUrl(content);
+
+    if (!url) {
+      // No URL in content: clear if it was auto-detected
+      if (lastDetectedUrl.current) {
+        lastDetectedUrl.current = null;
+        if (detectedLink) setDetectedLink(null);
+      }
+      return;
+    }
+
+    // Skip if this URL was dismissed or already detected
+    if (dismissedUrls.has(url) || lastDetectedUrl.current === url) return;
+
+    lastDetectedUrl.current = url;
+    setIsLoadingLink(true);
+
+    fetchLinkPreview(url).then((preview) => {
+      // Only update if the URL hasn't changed while we were fetching
+      if (lastDetectedUrl.current === url) {
+        setDetectedLink(preview);
+        setIsLoadingLink(false);
+        // If manual link mode was open, close it
+        if (activeMode === "link") setActiveMode(null);
+      }
+    });
+  }, [content, dismissedUrls, activeMode, detectedLink]);
+
   if (!user) return null;
 
   const charLimit = 500;
   const remaining = charLimit - content.length;
-  const canPost = content.trim().length > 0 || images.length > 0 || selectedQuote;
+  const hasLink = !!detectedLink || (activeMode === "link" && manualLinkUrl.trim());
+  const canPost =
+    content.trim().length > 0 || images.length > 0 || selectedQuote || hasLink;
 
   // -- Handlers --
 
@@ -101,6 +241,15 @@ export default function ComposePage() {
     if (images.length <= 1) setActiveMode(null);
   };
 
+  const dismissLink = () => {
+    if (detectedLink) {
+      setDismissedUrls((prev) => new Set([...prev, detectedLink.url]));
+    }
+    setDetectedLink(null);
+    lastDetectedUrl.current = null;
+    setIsLoadingLink(false);
+  };
+
   const toggleMode = (mode: AttachmentMode) => {
     if (activeMode === mode) {
       setActiveMode(null);
@@ -118,16 +267,32 @@ export default function ComposePage() {
       extras.images = images;
     }
 
-    if (linkUrl.trim()) {
+    // Prefer auto-detected link, fall back to manual
+    if (detectedLink) {
       extras.link = {
-        url: linkUrl.trim(),
-        title: linkTitle.trim() || undefined,
+        url: detectedLink.url,
+        title: detectedLink.title,
+        description: detectedLink.description,
+        image: detectedLink.image,
+        domain: detectedLink.domain,
+      };
+    } else if (activeMode === "link" && manualLinkUrl.trim()) {
+      extras.link = {
+        url: manualLinkUrl.trim(),
+        title: manualLinkTitle.trim() || undefined,
+        domain: extractDomain(manualLinkUrl.trim()),
       };
     }
 
-    if (activeMode === "poll" && pollOptions.filter((o) => o.trim()).length >= 2) {
-      const durationHours = pollDuration === "1d" ? 24 : pollDuration === "3d" ? 72 : 168;
-      const endsAt = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
+    if (
+      activeMode === "poll" &&
+      pollOptions.filter((o) => o.trim()).length >= 2
+    ) {
+      const durationHours =
+        pollDuration === "1d" ? 24 : pollDuration === "3d" ? 72 : 168;
+      const endsAt = new Date(
+        Date.now() + durationHours * 60 * 60 * 1000
+      ).toISOString();
       extras.poll = {
         question: content.trim(),
         options: pollOptions
@@ -209,7 +374,7 @@ export default function ComposePage() {
               {/* Audience Selector */}
               <button className="flex items-center gap-1 text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-0.5 mb-3 hover:bg-primary/5 transition-colors">
                 <Globe className="w-3.5 h-3.5" />
-                {audience === "everyone" ? "Everyone" : "Followers"}
+                Everyone
                 <ChevronDown className="w-3 h-3" />
               </button>
 
@@ -225,7 +390,7 @@ export default function ComposePage() {
                 placeholder={
                   activeMode === "poll"
                     ? "Ask a question..."
-                    : "What's on your mind?"
+                    : "What's happening?"
                 }
                 className="w-full bg-transparent text-foreground text-lg leading-relaxed placeholder:text-muted-foreground/60 resize-none outline-none min-h-[120px] font-sans"
                 rows={1}
@@ -234,7 +399,7 @@ export default function ComposePage() {
               {/* Attached Images */}
               {images.length > 0 && (
                 <div
-                  className={`mt-3 gap-2 rounded-xl overflow-hidden ${
+                  className={`mt-3 gap-1 rounded-2xl overflow-hidden ${
                     images.length === 1
                       ? "grid grid-cols-1"
                       : images.length === 2
@@ -271,9 +436,55 @@ export default function ComposePage() {
                 </div>
               )}
 
-              {/* Link Attachment */}
-              {activeMode === "link" && (
-                <div className="mt-4 p-3 border border-border rounded-xl bg-muted/30 space-y-2">
+              {/* Auto-detected Link Preview */}
+              {isLoadingLink && !detectedLink && (
+                <div className="mt-3 border border-border rounded-2xl overflow-hidden">
+                  <div className="p-4 flex items-center gap-3">
+                    <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+                    <span className="text-sm text-muted-foreground">
+                      Fetching link preview...
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {detectedLink && (
+                <div className="mt-3 border border-border rounded-2xl overflow-hidden relative group">
+                  <button
+                    onClick={dismissLink}
+                    className="absolute top-2 right-2 z-10 p-1 bg-black/60 rounded-full hover:bg-black/80 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <X className="w-3.5 h-3.5 text-white" />
+                  </button>
+                  {detectedLink.image && (
+                    <div className="aspect-[1.91/1] bg-muted">
+                      <img
+                        src={detectedLink.image}
+                        alt={detectedLink.title}
+                        className="w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    </div>
+                  )}
+                  <div className="px-3.5 py-2.5">
+                    <p className="text-xs text-muted-foreground">
+                      {detectedLink.domain}
+                    </p>
+                    <p className="text-sm font-semibold text-foreground leading-snug mt-0.5 line-clamp-2">
+                      {detectedLink.title}
+                    </p>
+                    {detectedLink.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                        {detectedLink.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Manual Link Attachment (only if no auto-detected link) */}
+              {activeMode === "link" && !detectedLink && !isLoadingLink && (
+                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Attach Link
@@ -281,8 +492,8 @@ export default function ComposePage() {
                     <button
                       onClick={() => {
                         setActiveMode(null);
-                        setLinkUrl("");
-                        setLinkTitle("");
+                        setManualLinkUrl("");
+                        setManualLinkTitle("");
                       }}
                       className="p-0.5 hover:bg-muted rounded-full"
                     >
@@ -291,15 +502,16 @@ export default function ComposePage() {
                   </div>
                   <input
                     type="url"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    placeholder="https://..."
+                    value={manualLinkUrl}
+                    onChange={(e) => setManualLinkUrl(e.target.value)}
+                    placeholder="Paste a URL..."
                     className="w-full bg-transparent border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/40 transition-colors"
+                    autoFocus
                   />
                   <input
                     type="text"
-                    value={linkTitle}
-                    onChange={(e) => setLinkTitle(e.target.value)}
+                    value={manualLinkTitle}
+                    onChange={(e) => setManualLinkTitle(e.target.value)}
                     placeholder="Title (optional)"
                     className="w-full bg-transparent border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/40 transition-colors"
                   />
@@ -308,7 +520,7 @@ export default function ComposePage() {
 
               {/* Poll Builder */}
               {activeMode === "poll" && (
-                <div className="mt-4 p-3 border border-border rounded-xl bg-muted/30 space-y-3">
+                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Poll
@@ -342,7 +554,9 @@ export default function ComposePage() {
                         {pollOptions.length > 2 && (
                           <button
                             onClick={() =>
-                              setPollOptions(pollOptions.filter((_, j) => j !== i))
+                              setPollOptions(
+                                pollOptions.filter((_, j) => j !== i)
+                              )
                             }
                             className="p-1 hover:bg-muted rounded-full"
                           >
@@ -378,7 +592,11 @@ export default function ComposePage() {
                               : "bg-muted text-muted-foreground hover:bg-muted/80"
                           }`}
                         >
-                          {d === "1d" ? "1 Day" : d === "3d" ? "3 Days" : "7 Days"}
+                          {d === "1d"
+                            ? "1 Day"
+                            : d === "3d"
+                            ? "3 Days"
+                            : "7 Days"}
                         </button>
                       ))}
                     </div>
@@ -388,7 +606,7 @@ export default function ComposePage() {
 
               {/* Quote Selector */}
               {activeMode === "quote" && !selectedQuote && (
-                <div className="mt-4 p-3 border border-border rounded-xl bg-muted/30 space-y-3">
+                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Share a Poem
@@ -450,10 +668,14 @@ export default function ComposePage() {
 
               {/* Selected Quote Preview */}
               {selectedQuote && (
-                <div className="mt-3 border border-border rounded-xl overflow-hidden">
+                <div className="mt-3 border border-border rounded-2xl overflow-hidden">
                   <div className="px-3.5 py-3 bg-muted/30">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Quote className="w-3 h-3 text-primary/50" />
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Shared Poem</span>
+                        </div>
                         <p className="font-serif text-sm font-semibold text-foreground leading-snug">
                           {selectedQuote.poemTitle}
                         </p>
@@ -468,9 +690,7 @@ export default function ComposePage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => {
-                          setSelectedQuote(null);
-                        }}
+                        onClick={() => setSelectedQuote(null)}
                         className="p-0.5 hover:bg-muted rounded-full flex-shrink-0 mt-0.5"
                       >
                         <X className="w-4 h-4 text-muted-foreground" />
@@ -496,7 +716,7 @@ export default function ComposePage() {
 
         {/* Toolbar + Character Count */}
         <div className="flex items-center justify-between px-3 py-2">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <input
               ref={fileInputRef}
               type="file"
@@ -507,7 +727,7 @@ export default function ComposePage() {
             />
             <button
               onClick={() => {
-                if (activeMode === "poll") return; // Can't add images with poll
+                if (activeMode === "poll") return;
                 fileInputRef.current?.click();
               }}
               disabled={activeMode === "poll" || images.length >= 4}
@@ -523,9 +743,11 @@ export default function ComposePage() {
 
             <button
               onClick={() => toggleMode("link")}
-              disabled={activeMode === "poll"}
+              disabled={activeMode === "poll" || !!detectedLink}
               className={`p-2.5 rounded-full transition-colors ${
-                activeMode === "link"
+                detectedLink
+                  ? "text-primary/50 cursor-default"
+                  : activeMode === "link"
                   ? "text-primary bg-primary/10"
                   : activeMode === "poll"
                   ? "text-muted-foreground/30 cursor-not-allowed"
@@ -569,7 +791,10 @@ export default function ComposePage() {
             {content.length > 0 && (
               <>
                 <div className="relative w-6 h-6">
-                  <svg className="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
+                  <svg
+                    className="w-6 h-6 -rotate-90"
+                    viewBox="0 0 24 24"
+                  >
                     <circle
                       cx="12"
                       cy="12"
@@ -586,7 +811,9 @@ export default function ComposePage() {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      strokeDasharray={`${(content.length / charLimit) * 62.8} 62.8`}
+                      strokeDasharray={`${
+                        (content.length / charLimit) * 62.8
+                      } 62.8`}
                       className={
                         remaining <= 20
                           ? remaining <= 0
@@ -600,7 +827,9 @@ export default function ComposePage() {
                 {remaining <= 20 && (
                   <span
                     className={`text-xs font-medium ${
-                      remaining <= 0 ? "text-destructive" : "text-amber-500"
+                      remaining <= 0
+                        ? "text-destructive"
+                        : "text-amber-500"
                     }`}
                   >
                     {remaining}

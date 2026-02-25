@@ -382,10 +382,108 @@ const COMMUNITY_POSTS_KEY = "ws_community_posts";
 const POST_CLAPS_KEY = "ws_post_claps_";
 const FREE_INK_KEY = "ws_free_ink_";
 
+const SEED_POSTS: CommunityPost[] = [
+  {
+    id: "seed-post-1",
+    poetId: "poet-1",
+    poetName: "Luna Rivers",
+    poetAvatar: "/images/avatars/luna.jpg",
+    content: "Just finished reading this incredible article on the intersection of poetry and technology. The way AI is being used to analyze poetic meter is fascinating.\n\nhttps://medium.com/poetry-and-tech",
+    link: {
+      url: "https://medium.com/poetry-and-tech",
+      title: "When Algorithms Meet Verse: Poetry in the Age of AI",
+      description: "An exploration of how artificial intelligence is reshaping our understanding of poetic rhythm, meter, and emotional resonance.",
+      image: "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=600&h=314&fit=crop",
+      domain: "medium.com"
+    },
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    clapsCount: 12,
+    likesCount: 34,
+    commentsCount: 5
+  },
+  {
+    id: "seed-post-2",
+    poetId: "poet-2",
+    poetName: "Marcus Webb",
+    poetAvatar: "/images/avatars/marcus.jpg",
+    content: "What do you think is the most important element in a poem?",
+    poll: {
+      question: "What do you think is the most important element in a poem?",
+      options: [
+        { id: "opt-0", text: "Imagery", votes: 42 },
+        { id: "opt-1", text: "Rhythm & Sound", votes: 28 },
+        { id: "opt-2", text: "Emotional truth", votes: 67 },
+        { id: "opt-3", text: "Word economy", votes: 19 }
+      ],
+      endsAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+      votedUsers: {}
+    },
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    clapsCount: 8,
+    likesCount: 45,
+    commentsCount: 12
+  },
+  {
+    id: "seed-post-3",
+    poetId: "poet-3",
+    poetName: "Aisha Patel",
+    poetAvatar: "/images/avatars/aisha.jpg",
+    content: "This poem by Luna absolutely wrecked me today. The way she captures grief in just twelve lines is masterful. You need to read this.",
+    quote: {
+      poemId: "poem-1",
+      poemTitle: "Midnight Conversations",
+      poetName: "Luna Rivers",
+      excerpt: "We speak in silences now, you and I, our words dissolved like sugar in the rain..."
+    },
+    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    clapsCount: 5,
+    likesCount: 23,
+    commentsCount: 3
+  },
+  {
+    id: "seed-post-4",
+    poetId: "poet-1",
+    poetName: "Luna Rivers",
+    poetAvatar: "/images/avatars/luna.jpg",
+    content: "New collection dropping this Friday. 11 poems about the spaces between what we say and what we mean. Stay tuned.",
+    images: [
+      "https://images.unsplash.com/photo-1516414447565-b14be0adf13e?w=600&h=400&fit=crop"
+    ],
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    clapsCount: 15,
+    likesCount: 89,
+    commentsCount: 18
+  },
+  {
+    id: "seed-post-5",
+    poetId: "poet-2",
+    poetName: "Marcus Webb",
+    poetAvatar: "/images/avatars/marcus.jpg",
+    content: "Check out this Spotify playlist I curated for writing sessions. Every track was chosen to match the pace of putting words on paper.\n\nhttps://spotify.com/playlist/writing-sessions",
+    link: {
+      url: "https://spotify.com/playlist/writing-sessions",
+      title: "Writing Sessions - A Poet's Companion",
+      description: "48 tracks of ambient, lo-fi, and classical pieces perfect for your next writing session.",
+      image: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=600&h=314&fit=crop",
+      domain: "spotify.com"
+    },
+    createdAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+    clapsCount: 6,
+    likesCount: 52,
+    commentsCount: 7
+  }
+];
+
 export function getCommunityPosts(): CommunityPost[] {
   const stored = localStorage.getItem(COMMUNITY_POSTS_KEY);
-  const posts = stored ? JSON.parse(stored) : [];
-  return posts.sort((a: CommunityPost, b: CommunityPost) => 
+  const userPosts: CommunityPost[] = stored ? JSON.parse(stored) : [];
+  
+  // Merge seed posts that don't already exist in user posts
+  const existingIds = new Set(userPosts.map(p => p.id));
+  const mergedSeeds = SEED_POSTS.filter(sp => !existingIds.has(sp.id));
+  const allPosts = [...userPosts, ...mergedSeeds];
+  
+  return allPosts.sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }
@@ -397,7 +495,7 @@ export function createCommunityPost(
   content: string,
   extras?: {
     images?: string[];
-    link?: { url: string; title?: string; description?: string };
+    link?: { url: string; title?: string; description?: string; image?: string; domain?: string };
     poll?: PostPoll;
     quote?: QuoteRef;
   }
