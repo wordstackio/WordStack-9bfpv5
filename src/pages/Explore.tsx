@@ -261,7 +261,7 @@ export default function Explore() {
                     key={poet.id}
                     poet={poet}
                     previewLine={getLatestPoemPreview(poet.id)}
-                    badge="Trending"
+
                   />
                 ))}
               </div>
@@ -279,7 +279,7 @@ export default function Explore() {
                     key={poet.id}
                     poet={poet}
                     previewLine={getLatestPoemPreview(poet.id)}
-                    badge="New"
+
                   />
                 ))}
               </div>

@@ -10,10 +10,9 @@ import { useState } from "react";
 interface PoetCardProps {
   poet: Poet;
   previewLine?: string;
-  badge?: string;
 }
 
-export default function PoetCard({ poet, previewLine, badge }: PoetCardProps) {
+export default function PoetCard({ poet, previewLine }: PoetCardProps) {
   const navigate = useNavigate();
   const user = getCurrentUser();
   const [following, setFollowing] = useState(isFollowing(poet.id));
@@ -40,15 +39,6 @@ export default function PoetCard({ poet, previewLine, badge }: PoetCardProps) {
 
   return (
     <Card onClick={handleCardClick} className="p-4 h-full transition-all duration-200 hover:shadow-md hover:border-primary/30 relative overflow-hidden cursor-pointer group">
-        {/* Badge */}
-        {badge && (
-          <div className="absolute top-3 right-3">
-            <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-              {badge}
-            </span>
-          </div>
-        )}
-
         <div className="flex items-start gap-3">
           {/* Avatar */}
           {poet.avatar ? (
