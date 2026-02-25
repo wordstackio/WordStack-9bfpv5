@@ -169,7 +169,7 @@ export default function Header() {
                 {user?.isPoet ? (
                   <>
                     <Link
-                      to={`/poet/${user.id}`}
+                      to="/dashboard"
                       onClick={closeMenu}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
                     >
