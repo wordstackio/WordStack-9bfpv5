@@ -46,6 +46,7 @@ function AppContent() {
   const [sessionReady, setSessionReady] = useState(false);
 
   const isAdminRoute = location.pathname.startsWith("/admin") || location.pathname === "/wsadmin";
+  const isWriteRoute = location.pathname === "/write";
 
   useEffect(() => {
     restoreSession().then((user) => {
@@ -69,7 +70,7 @@ function AppContent() {
   return (
       <div className="min-h-screen bg-background">
         <ScrollToTop />
-        {!isAdminRoute && <Header />}
+        {!isAdminRoute && !isWriteRoute && <Header />}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -97,8 +98,8 @@ function AppContent() {
           <Route path="/wsadmin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
-        {!isAdminRoute && <BottomNav />}
-        {!isAdminRoute && <FAB />}
+        {!isAdminRoute && !isWriteRoute && <BottomNav />}
+        {!isAdminRoute && !isWriteRoute && <FAB />}
         <DevModeBanner />
       </div>
   );
