@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { getCurrentUser } from "@/lib/auth";
 import { 
   getCommunityPosts, 
-  createCommunityPost, 
   getFollows,
   togglePostLike,
   getPostLiked,
@@ -16,10 +14,11 @@ import {
   createComment,
   clapComment,
   getCommentClaps,
-  getUnreadNotificationsCount
+  getUnreadNotificationsCount,
+  votePoll
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
-import { Users, MessageCircle, Send, X, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart } from "lucide-react";
+import { Users, MessageCircle, Send, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart, ExternalLink, BarChart3, Quote } from "lucide-react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
 
@@ -56,8 +55,6 @@ export default function Community() {
   const [searchParams, setSearchParams] = useSearchParams();
   const user = getCurrentUser();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
-  const [showCompose, setShowCompose] = useState(false);
-  const [newPostContent, setNewPostContent] = useState("");
   const [filter, setFilter] = useState<"all" | "following">("all");
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
@@ -75,8 +72,9 @@ export default function Community() {
     }
 
     if (searchParams.get("compose") === "true") {
-      setShowCompose(true);
       setSearchParams({});
+      navigate("/community/compose");
+      return;
     }
 
     loadPosts();
@@ -105,16 +103,9 @@ export default function Community() {
     ? posts.filter(p => followedPoetIds.includes(p.poetId))
     : posts;
 
-  const handleCreatePost = () => {
-    if (!newPostContent.trim()) return;
-    if (newPostContent.length > 500) {
-      alert("Updates must be under 500 characters");
-      return;
-    }
-
-    createCommunityPost(user.id, user.name, user.avatar, newPostContent);
-    setNewPostContent("");
-    setShowCompose(false);
+  const handleVotePoll = (postId: string, optionId: string) => {
+    if (!user) return;
+    votePoll(postId, user.id, optionId);
     loadPosts();
   };
 
@@ -363,77 +354,24 @@ export default function Community() {
           </div>
         </div>
 
-        {/* Compose Area */}
+        {/* Compose Trigger */}
         {user.isPoet && (
           <div className="border-b border-border">
-            {!showCompose ? (
-              <button
-                onClick={() => setShowCompose(true)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/20 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                  {user.avatar ? (
-                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Feather className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                  )}
-                </div>
-                <span className="text-muted-foreground text-[15px]">{"What's on your mind?"}</span>
-              </button>
-            ) : (
-              <div className="px-4 py-3">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                    {user.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Feather className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    )}
+            <button
+              onClick={() => navigate("/community/compose")}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/20 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Feather className="w-5 h-5 text-muted-foreground" />
                   </div>
-                  <div className="flex-1">
-                    <Textarea
-                      value={newPostContent}
-                      onChange={(e) => setNewPostContent(e.target.value)}
-                      placeholder="Share what you're working on..."
-                      rows={3}
-                      className="resize-none border-0 bg-transparent p-0 text-[15px] leading-relaxed placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                      maxLength={500}
-                      autoFocus
-                    />
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                      <span className={`text-xs ${newPostContent.length > 450 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                        {newPostContent.length}/500
-                      </span>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setShowCompose(false);
-                            setNewPostContent("");
-                          }}
-                          className="text-muted-foreground h-8"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={handleCreatePost}
-                          disabled={!newPostContent.trim()}
-                          className="rounded-full px-4 h-8 font-semibold"
-                        >
-                          Post
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-            )}
+              <span className="text-muted-foreground text-[15px]">{"What's on your mind?"}</span>
+            </button>
           </div>
         )}
 
@@ -449,7 +387,7 @@ export default function Community() {
             </p>
             {user.isPoet && (
               <Button
-                onClick={() => setShowCompose(true)}
+                onClick={() => navigate("/community/compose")}
                 className="rounded-full px-5 font-semibold"
               >
                 Post an update
@@ -513,9 +451,150 @@ export default function Community() {
                       </div>
                       
                       {/* Post body */}
-                      <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
-                        {post.content}
-                      </p>
+                      {post.content && (
+                        <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
+                          {post.content}
+                        </p>
+                      )}
+
+                      {/* Attached Images */}
+                      {post.images && post.images.length > 0 && (
+                        <div
+                          className={`mt-2.5 gap-0.5 rounded-xl overflow-hidden border border-border ${
+                            post.images.length === 1
+                              ? "grid grid-cols-1"
+                              : "grid grid-cols-2"
+                          }`}
+                        >
+                          {post.images.map((img, i) => (
+                            <div
+                              key={i}
+                              className={`bg-muted ${
+                                post.images!.length === 1
+                                  ? "aspect-video"
+                                  : "aspect-square"
+                              }`}
+                            >
+                              <img
+                                src={img}
+                                alt={`Post image ${i + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Attached Link */}
+                      {post.link && (
+                        <a
+                          href={post.link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2.5 block border border-border rounded-xl overflow-hidden hover:bg-muted/30 transition-colors"
+                        >
+                          <div className="px-3.5 py-3 flex items-center gap-2">
+                            <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              {post.link.title && (
+                                <p className="text-sm font-semibold text-foreground truncate">
+                                  {post.link.title}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground truncate">
+                                {post.link.url}
+                              </p>
+                            </div>
+                          </div>
+                        </a>
+                      )}
+
+                      {/* Poll */}
+                      {post.poll && (() => {
+                        const hasVoted = !!post.poll.votedUsers[user.id];
+                        const totalVotes = post.poll.options.reduce((sum, o) => sum + o.votes, 0);
+                        const isExpired = new Date(post.poll.endsAt) < new Date();
+                        const showResults = hasVoted || isExpired;
+                        const userVote = post.poll.votedUsers[user.id];
+
+                        return (
+                          <div className="mt-2.5 border border-border rounded-xl overflow-hidden">
+                            <div className="px-3.5 py-3 space-y-2">
+                              {post.poll.options.map((opt) => {
+                                const pct = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+                                return showResults ? (
+                                  <div key={opt.id} className="relative">
+                                    <div
+                                      className={`absolute inset-0 rounded-lg ${
+                                        userVote === opt.id ? "bg-primary/15" : "bg-muted/60"
+                                      }`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                    <div className="relative flex items-center justify-between px-3 py-2 rounded-lg">
+                                      <span className={`text-sm ${userVote === opt.id ? "font-semibold text-foreground" : "text-foreground"}`}>
+                                        {opt.text}
+                                        {userVote === opt.id && (
+                                          <span className="ml-1.5 text-xs text-primary">{"(you)"}</span>
+                                        )}
+                                      </span>
+                                      <span className="text-xs font-medium text-muted-foreground ml-2">{pct}%</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button
+                                    key={opt.id}
+                                    onClick={() => handleVotePoll(post.id, opt.id)}
+                                    className="w-full text-left px-3 py-2 rounded-lg border border-border text-sm text-foreground hover:bg-muted/30 hover:border-primary/30 transition-colors"
+                                  >
+                                    {opt.text}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="px-3.5 py-2 border-t border-border/50 flex items-center gap-2">
+                              <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
+                                {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
+                                {!isExpired && (
+                                  <span> · {(() => {
+                                    const hrs = Math.max(0, Math.ceil((new Date(post.poll!.endsAt).getTime() - Date.now()) / 3600000));
+                                    return hrs > 24 ? `${Math.ceil(hrs / 24)}d left` : `${hrs}h left`;
+                                  })()}</span>
+                                )}
+                                {isExpired && " · Final results"}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Quoted Poem */}
+                      {post.quote && (
+                        <Link
+                          to={`/poem/${post.quote.poemId}`}
+                          className="mt-2.5 block border border-border rounded-xl overflow-hidden hover:bg-muted/20 transition-colors"
+                        >
+                          <div className="px-3.5 py-3">
+                            <div className="flex items-start gap-2">
+                              <Quote className="w-4 h-4 text-primary/50 flex-shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-serif text-sm font-semibold text-foreground leading-snug">
+                                  {post.quote.poemTitle}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5 italic line-clamp-2">
+                                  {`"${post.quote.excerpt}"`}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {"by "}
+                                  <span className="font-medium text-foreground/70">
+                                    {post.quote.poetName}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </Link>
+                      )}
 
                       {/* Action bar */}
                       <div className="flex items-center justify-between mt-1.5 -ml-2 max-w-[300px]">
