@@ -96,12 +96,36 @@ export const DEFAULT_THEME: ThemePreferences = {
   }
 };
 
+export interface PollOption {
+  id: string;
+  text: string;
+  votes: number;
+}
+
+export interface PostPoll {
+  question: string;
+  options: PollOption[];
+  endsAt: string;
+  votedUsers: Record<string, string>; // userId -> optionId
+}
+
+export interface QuoteRef {
+  poemId: string;
+  poemTitle: string;
+  poetName: string;
+  excerpt: string;
+}
+
 export interface CommunityPost {
   id: string;
   poetId: string;
   poetName: string;
   poetAvatar?: string;
   content: string;
+  images?: string[];
+  link?: { url: string; title?: string; description?: string };
+  poll?: PostPoll;
+  quote?: QuoteRef;
   createdAt: string;
   clapsCount: number;
   likesCount: number;

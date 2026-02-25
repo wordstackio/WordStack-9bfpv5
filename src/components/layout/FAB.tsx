@@ -30,7 +30,7 @@ export default function FAB() {
       description: "Share a quick thought with followers",
       action: () => {
         setIsOpen(false);
-        navigate("/community?compose=true");
+        navigate("/community/compose");
       }
     }
   ];

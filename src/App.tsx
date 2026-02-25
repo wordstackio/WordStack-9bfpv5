@@ -12,6 +12,7 @@ import Onboarding from "@/pages/Onboarding";
 import Explore from "@/pages/Explore";
 import Feed from "@/pages/Feed";
 import Community from "@/pages/Community";
+import ComposePage from "@/pages/ComposePage";
 import PoetPage from "@/pages/PoetPage";
 import PoemPage from "@/pages/PoemPage";
 import Settings from "@/pages/Settings";
@@ -46,7 +47,7 @@ function AppContent() {
   const [sessionReady, setSessionReady] = useState(false);
 
   const isAdminRoute = location.pathname.startsWith("/admin") || location.pathname === "/wsadmin";
-  const isWriteRoute = location.pathname === "/write";
+  const isWriteRoute = location.pathname === "/write" || location.pathname === "/community/compose";
 
   useEffect(() => {
     restoreSession().then((user) => {
@@ -79,6 +80,7 @@ function AppContent() {
           <Route path="/explore" element={<Explore />} />
           <Route path="/feed" element={<Feed />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/community/compose" element={<ComposePage />} />
           <Route path="/poet/:id" element={<PoetPage />} />
           <Route path="/poem/:id" element={<PoemPage />} />
           <Route path="/notifications" element={<Notifications />} />

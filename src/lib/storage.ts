@@ -376,7 +376,7 @@ export function reorderCollections(poetId: string, collectionIds: string[]): voi
 }
 
 // Community Posts
-import { CommunityPost } from "@/types";
+import { CommunityPost, PostPoll, QuoteRef } from "@/types";
 
 const COMMUNITY_POSTS_KEY = "ws_community_posts";
 const POST_CLAPS_KEY = "ws_post_claps_";
@@ -394,7 +394,13 @@ export function createCommunityPost(
   poetId: string, 
   poetName: string, 
   poetAvatar: string | undefined, 
-  content: string
+  content: string,
+  extras?: {
+    images?: string[];
+    link?: { url: string; title?: string; description?: string };
+    poll?: PostPoll;
+    quote?: QuoteRef;
+  }
 ): CommunityPost {
   const post: CommunityPost = {
     id: `post-${Date.now()}`,
@@ -402,6 +408,10 @@ export function createCommunityPost(
     poetName,
     poetAvatar,
     content,
+    ...(extras?.images?.length ? { images: extras.images } : {}),
+    ...(extras?.link ? { link: extras.link } : {}),
+    ...(extras?.poll ? { poll: extras.poll } : {}),
+    ...(extras?.quote ? { quote: extras.quote } : {}),
     createdAt: new Date().toISOString(),
     likesCount: 0,
     commentsCount: 0
@@ -412,6 +422,22 @@ export function createCommunityPost(
   localStorage.setItem(COMMUNITY_POSTS_KEY, JSON.stringify(posts));
 
   return post;
+}
+
+export function votePoll(postId: string, userId: string, optionId: string): void {
+  const posts = getCommunityPosts();
+  const post = posts.find(p => p.id === postId);
+  if (!post?.poll) return;
+  
+  // Check if already voted
+  if (post.poll.votedUsers[userId]) return;
+  
+  const option = post.poll.options.find(o => o.id === optionId);
+  if (!option) return;
+  
+  option.votes++;
+  post.poll.votedUsers[userId] = optionId;
+  localStorage.setItem(COMMUNITY_POSTS_KEY, JSON.stringify(posts));
 }
 
 // Free Ink Management
