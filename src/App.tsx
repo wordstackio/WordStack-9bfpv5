@@ -31,6 +31,14 @@ import DevModeBanner from "@/components/features/DevModeBanner";
 import Challenges from "@/pages/Challenges";
 import ChallengeDetail from "@/pages/ChallengeDetail";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,6 +67,7 @@ function AppContent() {
 
   return (
       <div className="min-h-screen bg-background">
+        <ScrollToTop />
         {!isAdminRoute && <Header />}
         <Routes>
           <Route path="/" element={<Home />} />
