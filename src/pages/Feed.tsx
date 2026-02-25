@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import PoemCard from "@/components/features/PoemCard";
+import SpotlightBanner from "@/components/features/SpotlightBanner";
 import { getCurrentUser } from "@/lib/auth";
 import { mockPoems } from "@/lib/mockData";
 import { getFollows, getPublishedPoems } from "@/lib/storage";
@@ -55,10 +56,9 @@ export default function Feed() {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <Feather className="w-12 h-12 text-primary mx-auto mb-4" />
-          <h1 className="font-serif text-4xl font-bold mb-2">Your Feed</h1>
-          <p className="text-muted-foreground">Discover poetry from across the platform</p>
+        {/* Spotlight Sponsored Banner */}
+        <div className="mb-10">
+          <SpotlightBanner />
         </div>
 
         {/* Tab Navigation */}
