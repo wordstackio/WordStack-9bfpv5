@@ -28,6 +28,7 @@ import Notifications from "@/pages/Notifications";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import DevModeBanner from "@/components/features/DevModeBanner";
+import PoetDashboard from "@/pages/PoetDashboard";
 import Challenges from "@/pages/Challenges";
 import ChallengeDetail from "@/pages/ChallengeDetail";
 
@@ -89,6 +90,7 @@ function AppContent() {
           <Route path="/become-poet" element={<BecomePoet />} />
           <Route path="/ink-wallet" element={<InkWallet />} />
           <Route path="/ink-store" element={<InkStore />} />
+          <Route path="/dashboard" element={<PoetDashboard />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/challenge/:id" element={<ChallengeDetail />} />

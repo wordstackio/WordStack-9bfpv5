@@ -982,6 +982,47 @@ export function giveInkToPoem(
   return true;
 }
 
+// Delete a published poem
+export function deletePublishedPoem(poemId: string): boolean {
+  const poems = getPublishedPoems();
+  const filtered = poems.filter(p => p.id !== poemId);
+  if (filtered.length === poems.length) return false;
+  localStorage.setItem(POEMS_KEY, JSON.stringify(filtered));
+  return true;
+}
+
+// Boost (Spotlight) a poem with ink
+const SPOTLIGHTS_KEY = "ws_spotlights";
+const BOOST_COST = 10;
+
+export function getBoostCost(): number {
+  return BOOST_COST;
+}
+
+export function boostPoem(userId: string, poemId: string): boolean {
+  if (!deductInkFromUser(userId, BOOST_COST)) return false;
+  const spotlights = getActiveSpotlights();
+  spotlights.push({
+    poemId,
+    userId,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+  });
+  localStorage.setItem(SPOTLIGHTS_KEY, JSON.stringify(spotlights));
+  addInkTransaction(userId, "given", -BOOST_COST, `Boosted poem to Spotlight`);
+  return true;
+}
+
+export function getActiveSpotlights(): Array<{ poemId: string; userId: string; createdAt: string; expiresAt: string }> {
+  const stored = localStorage.getItem(SPOTLIGHTS_KEY);
+  const all = stored ? JSON.parse(stored) : [];
+  return all.filter((s: { expiresAt: string }) => new Date(s.expiresAt) > new Date());
+}
+
+export function isPoemBoosted(poemId: string): boolean {
+  return getActiveSpotlights().some(s => s.poemId === poemId);
+}
+
 // Blog Posts Management
 import { BlogPost, AccountDeletionRequest } from "@/types";
 
