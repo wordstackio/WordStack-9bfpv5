@@ -220,9 +220,16 @@ export default function PoemPage() {
         </div>
 
         {/* Boosted Poems */}
-        <div className="py-5 border-t border-border/30">
+        <div className="mt-8 -mx-5 sm:-mx-6 px-5 sm:px-6 py-6 bg-accent/40 border-y border-primary/10">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h2 className="font-serif text-sm font-semibold text-primary uppercase tracking-wide">
+              Boosted
+            </h2>
+          </div>
+
           {boostedPoems.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {boostedPoems.map((bp) => {
                 const previewLines = bp.content
                   .split("\n")
@@ -233,20 +240,22 @@ export default function PoemPage() {
                   <Link
                     key={bp.id}
                     to={`/poem/${bp.id}`}
-                    className="block group"
+                    className="block group rounded-lg bg-card/80 border border-primary/10 px-4 py-3.5 hover:border-primary/25 hover:shadow-sm transition-all"
                   >
                     <h3 className="font-serif text-base font-semibold text-foreground group-hover:text-primary transition-colors leading-snug">
                       {bp.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1 leading-relaxed">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-1 leading-relaxed italic">
                       {previewLines}
                     </p>
-                    <div className="flex items-center gap-2 mt-1.5">
+                    <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs text-muted-foreground">
-                        by {bp.poetName}
+                        by{" "}
+                        <span className="font-medium text-foreground/80">
+                          {bp.poetName}
+                        </span>
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60 font-medium px-1.5 py-0.5 rounded bg-muted/50">
-                        <Sparkles className="w-3 h-3" />
+                      <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/50 font-medium px-1.5 py-0.5 rounded-full bg-muted/60 uppercase tracking-wider">
                         Boosted
                       </span>
                     </div>
@@ -255,7 +264,8 @@ export default function PoemPage() {
               })}
             </div>
           ) : (
-            <div className="text-center py-4">
+            <div className="rounded-lg bg-card/60 border border-dashed border-primary/15 px-4 py-5 text-center">
+              <Sparkles className="w-5 h-5 text-muted-foreground/40 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
                 {user?.isPoet
                   ? "No poems in the Boost pool right now. Boost one of yours from your dashboard to get featured here."
