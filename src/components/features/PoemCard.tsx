@@ -21,11 +21,11 @@ export default function PoemCard({ poem, showSpotlight }: PoemCardProps) {
       )}
       
       <Link to={`/poem/${poem.id}`} className="block group">
-        <h3 className="font-serif text-2xl md:text-3xl font-semibold text-foreground mb-4 group-hover:text-primary transition-colors leading-snug">
+        <h3 className="font-serif text-3xl md:text-4xl font-semibold text-foreground mb-4 group-hover:text-primary transition-colors leading-snug">
           {poem.title}
         </h3>
       
-        <div className="font-serif text-base md:text-lg leading-loose text-foreground/80 whitespace-pre-line mb-6">
+        <div className="font-serif text-lg md:text-xl leading-loose text-foreground/80 whitespace-pre-line mb-6">
           {previewLines}
           {poem.content.length > previewLines.length && (
             <span className="text-muted-foreground/60 italic ml-1">...</span>
