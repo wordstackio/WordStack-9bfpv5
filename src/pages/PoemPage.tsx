@@ -5,6 +5,7 @@ import { mockPoems, mockPoets, mockPoemComments } from "@/lib/mockData";
 import { getCurrentUser } from "@/lib/auth";
 import { clapPoem, getPoemClaps, getUserPoemClaps, getPoemComments, canUseInk, getFreeInkUsage } from "@/lib/storage";
 import { shortTimeAgo } from "@/lib/utils";
+import AdBanner from "@/components/features/AdBanner";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
 import ClappersModal from "@/components/features/ClappersModal";
 import CommentsOverlay from "@/components/features/CommentsOverlay";
@@ -192,6 +193,11 @@ export default function PoemPage() {
               </span>
             </p>
           </Link>
+        </div>
+
+        {/* Ad Space */}
+        <div className="py-5 border-t border-border/30">
+          <AdBanner adSlot="5428925494" />
         </div>
       </article>
 
