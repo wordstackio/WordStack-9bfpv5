@@ -1,4 +1,7 @@
 // Mock storage for follows, ink, etc.
+import { mockCommunityComments, mockPoemComments } from "./mockData";
+import { extractMentions, getMentionedUserIds } from "./mentions";
+import { Comment } from "@/types";
 
 const FOLLOWS_KEY = "wordstack_follows";
 const POEM_CLAPS_KEY = "ws_poem_claps";
@@ -699,7 +702,6 @@ const COMMENT_CLAPS_KEY = "ws_comment_claps_";
 
 export function getComments(postId?: string): Comment[] {
   // Start with mock data
-  const { mockCommunityComments } = require("./mockData");
   let all: Comment[] = [...mockCommunityComments];
   
   // Merge with stored user-created comments
@@ -725,8 +727,6 @@ export function createComment(
   content: string,
   parentCommentId?: string
 ): Comment {
-  const { extractMentions, getMentionedUserIds } = require("./mentions");
-  
   const mentions = extractMentions(content);
   const mentionedUserIds = getMentionedUserIds(content);
 
@@ -907,7 +907,6 @@ const POEM_COMMENTS_KEY = "ws_poem_comments";
 
 export function getPoemComments(poemId?: string): Comment[] {
   // Start with mock data
-  const { mockPoemComments } = require("./mockData");
   let all: Comment[] = [...mockPoemComments];
   
   // Merge with stored user-created comments
@@ -933,8 +932,6 @@ export function createPoemComment(
   content: string,
   parentCommentId?: string
 ): Comment {
-  const { extractMentions, getMentionedUserIds } = require("./mentions");
-  
   const mentions = extractMentions(content);
   const mentionedUserIds = getMentionedUserIds(content);
 
