@@ -698,11 +698,20 @@ const NOTIFICATIONS_KEY = "ws_notifications";
 const COMMENT_CLAPS_KEY = "ws_comment_claps_";
 
 export function getComments(postId?: string): Comment[] {
+  // Start with mock data
+  const { mockCommunityComments } = require("./mockData");
+  let all: Comment[] = [...mockCommunityComments];
+  
+  // Merge with stored user-created comments
   const stored = localStorage.getItem(COMMENTS_KEY);
-  const all = stored ? JSON.parse(stored) : [];
+  if (stored) {
+    const userComments: Comment[] = JSON.parse(stored);
+    all = [...all, ...userComments];
+  }
+  
   if (postId) {
     return all.filter((c: Comment) => c.postId === postId).sort((a: Comment, b: Comment) => 
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }
   return all;
@@ -897,11 +906,20 @@ export function markAllNotificationsAsRead(userId: string): void {
 const POEM_COMMENTS_KEY = "ws_poem_comments";
 
 export function getPoemComments(poemId?: string): Comment[] {
+  // Start with mock data
+  const { mockPoemComments } = require("./mockData");
+  let all: Comment[] = [...mockPoemComments];
+  
+  // Merge with stored user-created comments
   const stored = localStorage.getItem(POEM_COMMENTS_KEY);
-  const all: Comment[] = stored ? JSON.parse(stored) : [];
+  if (stored) {
+    const userComments: Comment[] = JSON.parse(stored);
+    all = [...all, ...userComments];
+  }
+  
   if (poemId) {
     return all.filter((c) => c.postId === poemId).sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }
   return all;

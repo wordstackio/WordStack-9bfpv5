@@ -355,6 +355,110 @@ export const mockPoemComments: Comment[] = [
   }
 ];
 
+// Mock Community Comments
+export const mockCommunityComments: Comment[] = [
+  // seed-post-1 comments (Luna's article about poetry and AI)
+  {
+    id: "cc-1",
+    postId: "seed-post-1",
+    userId: "user-2",
+    userName: "Marcus Chen",
+    userAvatar: "/images/avatars/avatar-man-headshot.jpg",
+    content: "This is fascinating! I've been wondering how AI can capture the subtleties of meter and rhythm. Great share, Luna.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T18:30:00Z",
+    clapsCount: 5
+  },
+  {
+    id: "cc-2",
+    postId: "seed-post-1",
+    userId: "user-3",
+    userName: "Aria Blackwood",
+    userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
+    content: "The way we're blending technology with traditional poetry feels both exciting and a little scary. What's your take on this?",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T19:45:00Z",
+    clapsCount: 3
+  },
+  // seed-post-2 comments (Marcus's poll)
+  {
+    id: "cc-3",
+    postId: "seed-post-2",
+    userId: "user-4",
+    userName: "Leo Nguyen",
+    userAvatar: "/images/avatars/avatar-man-older.jpg",
+    content: "For me it's the emotional truth. Without that, even perfect form feels hollow. The others can support it, but that's the foundation.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T17:20:00Z",
+    clapsCount: 8
+  },
+  {
+    id: "cc-4",
+    postId: "seed-post-2",
+    userId: "user-1",
+    userName: "Elena Rivera",
+    userAvatar: "/images/avatars/avatar-woman-dark.jpg",
+    content: "@Marcus Chen I voted for Rhythm & Sound - I think the musicality of language is what draws readers in first. What do you think?",
+    parentCommentId: undefined,
+    mentions: ["Marcus"],
+    createdAt: "2024-11-22T18:00:00Z",
+    clapsCount: 2
+  },
+  // seed-post-3 comments (Aisha's poem quote)
+  {
+    id: "cc-5",
+    postId: "seed-post-3",
+    userId: "user-5",
+    userName: "Priya Kapoor",
+    userAvatar: "/images/avatars/avatar-woman-closeup.jpg",
+    content: "Luna's work always hits differently. The way she compresses so much feeling into so few words is incredible.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T20:15:00Z",
+    clapsCount: 6
+  },
+  {
+    id: "cc-6",
+    postId: "seed-post-3",
+    userId: "user-2",
+    userName: "Marcus Chen",
+    userAvatar: "/images/avatars/avatar-man-headshot.jpg",
+    content: "@Priya Kapoor Completely agree. This is masterclass in economy of language. I'm going to read her entire catalog.",
+    parentCommentId: "cc-5",
+    mentions: ["Priya"],
+    createdAt: "2024-11-22T20:45:00Z",
+    clapsCount: 4
+  },
+  // seed-post-4 comments (Luna's collection announcement)
+  {
+    id: "cc-7",
+    postId: "seed-post-4",
+    userId: "user-3",
+    userName: "Aria Blackwood",
+    userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
+    content: "Friday can't come soon enough! Your work always explores those spaces so beautifully. Excited to see what you've created.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T21:00:00Z",
+    clapsCount: 7
+  },
+  {
+    id: "cc-8",
+    postId: "seed-post-4",
+    userId: "user-4",
+    userName: "Leo Nguyen",
+    userAvatar: "/images/avatars/avatar-man-older.jpg",
+    content: "11 poems about the space between saying and meaning - that's a theme I'm constantly wrestling with. Really looking forward to this.",
+    parentCommentId: undefined,
+    mentions: [],
+    createdAt: "2024-11-22T21:30:00Z",
+    clapsCount: 5
+  }
+];
+
 // Mock Spotlight (top 3, last 24h)
 export const mockSpotlight: Spotlight[] = [
   {
