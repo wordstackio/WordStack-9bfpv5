@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Compass, Users, User, Flame } from "lucide-react";
+import { Home, Compass, Users, Bookmark } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 
 export default function BottomNav() {
@@ -28,10 +28,10 @@ export default function BottomNav() {
       label: "Community"
     },
     {
-      id: "profile",
-      path: user.isPoet ? "/challenges" : `/poet/${user.id}`,
-      icon: user.isPoet ? Flame : User,
-      label: user.isPoet ? "Challenges" : "Profile"
+      id: "saved",
+      path: "/saved",
+      icon: Bookmark,
+      label: "Saved"
     }
   ];
 
