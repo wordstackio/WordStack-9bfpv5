@@ -44,7 +44,7 @@ export default function PoemPage() {
     return [...mockForPoem.filter((c) => !storedIds.has(c.id)), ...storedComments];
   }, [poem]);
 
-  const [comments, setComments] = useState(loadComments);
+  const [comments, setComments] = useState(loadComments());
 
   const handleCommentAdded = () => {
     setComments(loadComments());
