@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth";
@@ -156,6 +156,8 @@ export default function ComposePage() {
   const [selectedQuote, setSelectedQuote] = useState<QuoteRef | null>(null);
   const [quoteSearch, setQuoteSearch] = useState("");
 
+  const didFocusRef = useRef(false);
+
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -165,7 +167,11 @@ export default function ComposePage() {
       navigate("/community");
       return;
     }
-    setTimeout(() => textareaRef.current?.focus(), 100);
+    // Focus textarea once on mount only
+    if (!didFocusRef.current) {
+      didFocusRef.current = true;
+      textareaRef.current?.focus();
+    }
   }, [user, navigate]);
 
   const handleTextareaResize = useCallback(() => {
@@ -176,39 +182,41 @@ export default function ComposePage() {
     }
   }, []);
 
-  useEffect(() => {
-    handleTextareaResize();
-  }, [content, handleTextareaResize]);
+  // Track activeMode in a ref so the effect doesn't depend on it
+  const activeModeRef = useRef(activeMode);
+  activeModeRef.current = activeMode;
+  const dismissedUrlsRef = useRef(dismissedUrls);
+  dismissedUrlsRef.current = dismissedUrls;
 
   // Auto-detect URLs in content
   useEffect(() => {
     const url = extractUrl(content);
 
     if (!url) {
-      // No URL in content: clear if it was auto-detected
       if (lastDetectedUrl.current) {
         lastDetectedUrl.current = null;
-        if (detectedLink) setDetectedLink(null);
+        setDetectedLink(null);
+        setIsLoadingLink(false);
       }
       return;
     }
 
     // Skip if this URL was dismissed or already detected
-    if (dismissedUrls.has(url) || lastDetectedUrl.current === url) return;
+    if (dismissedUrlsRef.current.has(url) || lastDetectedUrl.current === url) return;
 
     lastDetectedUrl.current = url;
     setIsLoadingLink(true);
 
     fetchLinkPreview(url).then((preview) => {
-      // Only update if the URL hasn't changed while we were fetching
       if (lastDetectedUrl.current === url) {
         setDetectedLink(preview);
         setIsLoadingLink(false);
-        // If manual link mode was open, close it
-        if (activeMode === "link") setActiveMode(null);
+        if (activeModeRef.current === "link") setActiveMode(null);
       }
     });
-  }, [content, dismissedUrls, activeMode, detectedLink]);
+  // Only re-run when the content text actually changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content]);
 
   if (!user) return null;
 
@@ -311,18 +319,23 @@ export default function ComposePage() {
     navigate("/community");
   };
 
-  // Get poems for quote search
-  const allPoems: Poem[] = [...mockPoems, ...getPublishedPoems()];
-  const uniquePoems = allPoems.filter(
-    (p, i, arr) => arr.findIndex((x) => x.id === p.id) === i
-  );
-  const filteredPoems = quoteSearch.trim()
-    ? uniquePoems.filter(
-        (p) =>
-          p.title.toLowerCase().includes(quoteSearch.toLowerCase()) ||
-          p.poetName.toLowerCase().includes(quoteSearch.toLowerCase())
-      )
-    : uniquePoems.slice(0, 8);
+  // Get poems for quote search (memoized to avoid re-renders stealing focus)
+  const uniquePoems = useMemo(() => {
+    const allPoems: Poem[] = [...mockPoems, ...getPublishedPoems()];
+    return allPoems.filter(
+      (p, i, arr) => arr.findIndex((x) => x.id === p.id) === i
+    );
+  }, []);
+  
+  const filteredPoems = useMemo(() => {
+    return quoteSearch.trim()
+      ? uniquePoems.filter(
+          (p) =>
+            p.title.toLowerCase().includes(quoteSearch.toLowerCase()) ||
+            p.poetName.toLowerCase().includes(quoteSearch.toLowerCase())
+        )
+      : uniquePoems.slice(0, 8);
+  }, [quoteSearch, uniquePoems]);
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col">
@@ -385,6 +398,7 @@ export default function ComposePage() {
                 onChange={(e) => {
                   if (e.target.value.length <= charLimit) {
                     setContent(e.target.value);
+                    handleTextareaResize();
                   }
                 }}
                 placeholder={
@@ -484,7 +498,7 @@ export default function ComposePage() {
 
               {/* Manual Link Attachment (only if no auto-detected link) */}
               {activeMode === "link" && !detectedLink && !isLoadingLink && (
-                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-2">
+                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-2" onMouseDown={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Attach Link
@@ -506,7 +520,6 @@ export default function ComposePage() {
                     onChange={(e) => setManualLinkUrl(e.target.value)}
                     placeholder="Paste a URL..."
                     className="w-full bg-transparent border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/40 transition-colors"
-                    autoFocus
                   />
                   <input
                     type="text"
@@ -520,7 +533,7 @@ export default function ComposePage() {
 
               {/* Poll Builder */}
               {activeMode === "poll" && (
-                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-3">
+                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-3" onMouseDown={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Poll
@@ -606,7 +619,7 @@ export default function ComposePage() {
 
               {/* Quote Selector */}
               {activeMode === "quote" && !selectedQuote && (
-                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-3">
+                <div className="mt-4 p-3 border border-border rounded-2xl bg-muted/30 space-y-3" onMouseDown={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Share a Poem
@@ -627,7 +640,6 @@ export default function ComposePage() {
                     onChange={(e) => setQuoteSearch(e.target.value)}
                     placeholder="Search poems or poets..."
                     className="w-full bg-transparent border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:border-primary/40 transition-colors"
-                    autoFocus
                   />
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {filteredPoems.map((poem) => (
