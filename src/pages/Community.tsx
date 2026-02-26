@@ -379,27 +379,6 @@ export default function Community() {
           </div>
         </div>
 
-        {/* Compose Trigger */}
-        {user.isPoet && (
-          <div className="border-b border-border">
-            <button
-              onClick={() => navigate("/community/compose")}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/20 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Feather className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-              <span className="text-muted-foreground text-[15px]">{"What's on your mind?"}</span>
-            </button>
-          </div>
-        )}
-
         {/* Posts Feed */}
         {filteredPosts.length === 0 ? (
           <div className="px-4 py-16 text-center">
