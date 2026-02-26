@@ -23,6 +23,7 @@ import { Users, MessageCircle, Send, Feather, Clock, Reply, Repeat2, Share, More
 import { Fragment } from "react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
+import MentionRenderer from "@/components/features/MentionRenderer";
 
 // Linkify URLs in text
 function linkifyText(text: string) {
@@ -244,7 +245,7 @@ export default function Community() {
               <span className="text-xs text-muted-foreground">{getTimeAgo(comment.createdAt)}</span>
             </div>
             <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
-              {comment.content}
+              <MentionRenderer content={comment.content} className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0" />
             </p>
             
             <div className="flex items-center gap-5 mt-1.5">
@@ -693,7 +694,7 @@ export default function Community() {
                                   <Input
                                     value={commentInputs[post.id] || ""}
                                     onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                    placeholder="Post your reply..."
+                                    placeholder="Post your reply... (use @username to mention)"
                                     className="text-sm h-8 border-muted bg-transparent rounded-full px-3"
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter' && !e.shiftKey) {
