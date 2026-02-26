@@ -1,6 +1,7 @@
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { BookOpen, ExternalLink, Twitter, Instagram, Globe } from "lucide-react";
 import { mockPoets, mockPoems, mockUpdates } from "@/lib/mockData";
 import PoemCard from "@/components/features/PoemCard";
