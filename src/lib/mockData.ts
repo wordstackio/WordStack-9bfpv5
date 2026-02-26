@@ -59,6 +59,7 @@ earth and sky, waiting
 for the sun to decide
 whether to let them fall
 or lift them into mist.`,
+    tag: "nature",
     createdAt: "2024-11-20",
     clapsCount: 45,
     commentsCount: 7,
@@ -78,6 +79,7 @@ The tunnel breathes warm, stale air.
 Somewhere above, the city sleeps—
 but here, we are the forgotten ones,
 waiting for trains that run on hope.`,
+    tag: "urban",
     createdAt: "2024-11-18",
     clapsCount: 32,
     commentsCount: 5,
@@ -89,6 +91,7 @@ waiting for trains that run on hope.`,
     poetName: "Aria Blackwood",
     poetAvatar: mockPoets[2].avatar,
     title: "The Raven's Last Confession",
+    tag: "loss",
     content: `I watched you from the old oak tree,
 counting your secrets like fallen leaves.
 The moon was a witness, pale and silent,
@@ -111,6 +114,7 @@ the dark archive of all you left behind.`,
     poetName: "Elena Rivera",
     poetAvatar: mockPoets[0].avatar,
     title: "Inheritance",
+    tag: "family",
     content: `My grandmother left me
 her silence—the kind that settles
 like dust on photographs,
@@ -133,6 +137,7 @@ too much for words.`,
     poetName: "Marcus Chen",
     poetAvatar: mockPoets[1].avatar,
     title: "Laundromat Philosophy",
+    tag: "solitude",
     content: `The machines spin their logic—
 separate whites from colors,
 delicate from sturdy.

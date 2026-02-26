@@ -208,10 +208,11 @@ interface PoemDraft {
   id: string;
   title: string;
   content: string;
+  tag?: string;
   collectionId?: string;
   isPinned: boolean;
   lastSaved: string;
-}
+  }
 
 const DRAFTS_KEY = "ws_drafts_";
 const POEMS_KEY = "ws_poems";
@@ -252,6 +253,7 @@ export function publishPoem(poetId: string, poetName: string, poetAvatar: string
     poetAvatar,
     title: draft.title,
     content: draft.content,
+    tag: draft.tag,
     createdAt: new Date().toISOString(),
     inkReceived: 0,
     commentsCount: 0,
@@ -1235,5 +1237,82 @@ export function dismissDeletionRequest(id: string): boolean {
   if (filtered.length === requests.length) return false;
 
   localStorage.setItem(DELETION_REQUESTS_KEY, JSON.stringify(filtered));
+  return true;
+}
+
+// ─── Tags Management (Admin-controlled) ───
+const TAGS_KEY = "ws_tags";
+
+export interface PoemTag {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  createdAt: string;
+}
+
+const DEFAULT_TAGS: PoemTag[] = [
+  { id: "tag-1", name: "Love", slug: "love", description: "Poems about love, longing, and connection.", createdAt: "2024-01-01" },
+  { id: "tag-2", name: "Nature", slug: "nature", description: "The natural world through a poet's eye.", createdAt: "2024-01-01" },
+  { id: "tag-3", name: "Loss", slug: "loss", description: "Grief, absence, and the weight of letting go.", createdAt: "2024-01-01" },
+  { id: "tag-4", name: "Identity", slug: "identity", description: "Self-discovery, belonging, and who we are.", createdAt: "2024-01-01" },
+  { id: "tag-5", name: "Night", slug: "night", description: "Nocturnal thoughts, dreams, and sleeplessness.", createdAt: "2024-01-01" },
+  { id: "tag-6", name: "Memory", slug: "memory", description: "Nostalgia, remembrance, and time gone by.", createdAt: "2024-01-01" },
+  { id: "tag-7", name: "Hope", slug: "hope", description: "Light at the end of the tunnel.", createdAt: "2024-01-01" },
+  { id: "tag-8", name: "Solitude", slug: "solitude", description: "Being alone, stillness, and quiet power.", createdAt: "2024-01-01" },
+  { id: "tag-9", name: "Urban", slug: "urban", description: "City life, concrete jungles, and street poetry.", createdAt: "2024-01-01" },
+  { id: "tag-10", name: "Growth", slug: "growth", description: "Change, healing, and becoming.", createdAt: "2024-01-01" },
+  { id: "tag-11", name: "Family", slug: "family", description: "Roots, inheritance, and the bonds we carry.", createdAt: "2024-01-01" },
+  { id: "tag-12", name: "Rage", slug: "rage", description: "Anger, fire, and unapologetic expression.", createdAt: "2024-01-01" },
+  { id: "tag-13", name: "Seasons", slug: "seasons", description: "Spring, summer, autumn, winter — cycles of life.", createdAt: "2024-01-01" },
+  { id: "tag-14", name: "Spirituality", slug: "spirituality", description: "Faith, the divine, and inner peace.", createdAt: "2024-01-01" },
+  { id: "tag-15", name: "Heartbreak", slug: "heartbreak", description: "When love falls apart.", createdAt: "2024-01-01" },
+];
+
+export function getTags(): PoemTag[] {
+  const stored = localStorage.getItem(TAGS_KEY);
+  if (stored) return JSON.parse(stored);
+  // Seed defaults on first access
+  localStorage.setItem(TAGS_KEY, JSON.stringify(DEFAULT_TAGS));
+  return [...DEFAULT_TAGS];
+}
+
+export function getTagBySlug(slug: string): PoemTag | null {
+  return getTags().find(t => t.slug === slug) || null;
+}
+
+export function addTag(name: string, description?: string): PoemTag {
+  const tags = getTags();
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const tag: PoemTag = {
+    id: `tag-${Date.now()}`,
+    name,
+    slug,
+    description,
+    createdAt: new Date().toISOString(),
+  };
+  tags.push(tag);
+  localStorage.setItem(TAGS_KEY, JSON.stringify(tags));
+  return tag;
+}
+
+export function updateTag(tagId: string, updates: Partial<Pick<PoemTag, "name" | "description">>): PoemTag | null {
+  const tags = getTags();
+  const idx = tags.findIndex(t => t.id === tagId);
+  if (idx === -1) return null;
+  if (updates.name) {
+    tags[idx].name = updates.name;
+    tags[idx].slug = updates.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  }
+  if (updates.description !== undefined) tags[idx].description = updates.description;
+  localStorage.setItem(TAGS_KEY, JSON.stringify(tags));
+  return tags[idx];
+}
+
+export function deleteTag(tagId: string): boolean {
+  const tags = getTags();
+  const filtered = tags.filter(t => t.id !== tagId);
+  if (filtered.length === tags.length) return false;
+  localStorage.setItem(TAGS_KEY, JSON.stringify(filtered));
   return true;
 }

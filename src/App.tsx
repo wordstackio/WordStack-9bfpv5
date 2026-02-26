@@ -32,6 +32,7 @@ import DevModeBanner from "@/components/features/DevModeBanner";
 import PoetDashboard from "@/pages/PoetDashboard";
 import Challenges from "@/pages/Challenges";
 import ChallengeDetail from "@/pages/ChallengeDetail";
+import TagPage from "@/pages/TagPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -95,6 +96,7 @@ function AppContent() {
           <Route path="/ink-store" element={<InkStore />} />
           <Route path="/dashboard" element={<PoetDashboard />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/tag/:slug" element={<TagPage />} />
           <Route path="/challenges" element={<Challenges />} />
           <Route path="/challenge/:id" element={<ChallengeDetail />} />
           <Route path="/wsadmin" element={<AdminLogin />} />

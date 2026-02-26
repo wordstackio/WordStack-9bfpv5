@@ -30,6 +30,7 @@ export interface Poem {
   poetAvatar?: string;
   title: string;
   content: string;
+  tag?: string;
   createdAt: string;
   clapsCount: number;
   commentsCount: number;

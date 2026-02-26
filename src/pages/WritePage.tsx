@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getCurrentUser } from "@/lib/auth";
-import { saveDraft, getDraft, publishPoem } from "@/lib/storage";
+import { saveDraft, getDraft, publishPoem, getTags, PoemTag } from "@/lib/storage";
 import { mockCollections } from "@/lib/mockData";
 import {
   ArrowLeft,
@@ -18,6 +18,8 @@ import {
   Italic,
   AlignCenter,
   AlignLeft,
+  Tag,
+  Search as SearchIcon,
 } from "lucide-react";
 
 // Floating toolbar on text selection
@@ -94,6 +96,15 @@ export default function WritePage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [selectedTag, setSelectedTag] = useState("");
+  const [tagSearch, setTagSearch] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+
+  const allTags = getTags();
+  const filteredTags = tagSearch
+    ? allTags.filter(t => t.name.toLowerCase().includes(tagSearch.toLowerCase()))
+    : allTags;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -114,6 +125,7 @@ export default function WritePage() {
         setTitle(draft.title);
         setContent(draft.content);
         setCollectionId(draft.collectionId || "");
+        setSelectedTag(draft.tag || "");
         setIsPinned(draft.isPinned);
         setLastSaved(new Date(draft.lastSaved));
       }
@@ -143,6 +155,7 @@ export default function WritePage() {
       id: draftId || `draft-${Date.now()}`,
       title,
       content,
+      tag: selectedTag || undefined,
       collectionId: collectionId || undefined,
       isPinned,
       lastSaved: new Date().toISOString(),
@@ -151,7 +164,7 @@ export default function WritePage() {
     setLastSaved(new Date());
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 2000);
-  }, [user, title, content, collectionId, isPinned, draftId]);
+  }, [user, title, content, selectedTag, collectionId, isPinned, draftId]);
 
   // Autosave every 10 seconds (more frequent for poet's peace of mind)
   useEffect(() => {
@@ -162,7 +175,7 @@ export default function WritePage() {
 
   if (!user) return null;
 
-  const handlePublish = () => {
+  const handlePublishAttempt = () => {
     if (!title.trim()) {
       titleRef.current?.focus();
       return;
@@ -171,11 +184,21 @@ export default function WritePage() {
       textareaRef.current?.focus();
       return;
     }
+    if (!selectedTag) {
+      setShowPublishModal(true);
+      return;
+    }
+    doPublish();
+  };
+
+  const doPublish = () => {
+    setShowPublishModal(false);
     setPublishing(true);
     const draft = {
       id: draftId || `poem-${Date.now()}`,
       title,
       content,
+      tag: selectedTag || undefined,
       collectionId: collectionId || undefined,
       isPinned,
       lastSaved: new Date().toISOString(),
@@ -249,7 +272,7 @@ export default function WritePage() {
             <Button
               size="sm"
               className="h-8 text-xs gap-1.5 px-4"
-              onClick={handlePublish}
+              onClick={handlePublishAttempt}
               disabled={publishing || (!title.trim() && !content.trim())}
             >
               <Send className="w-3.5 h-3.5" />
@@ -357,6 +380,69 @@ export default function WritePage() {
               </button>
             </div>
 
+            {/* Tag */}
+            <div className="mb-6">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
+                Tag <span className="text-primary/70 normal-case tracking-normal">(required)</span>
+              </label>
+              <div className="relative">
+                <div
+                  onClick={() => setShowTagDropdown(!showTagDropdown)}
+                  className="w-full flex items-center gap-2 bg-background border border-border rounded-md px-3 py-2 text-sm cursor-pointer hover:border-primary/40 transition-colors"
+                >
+                  <Tag className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className={selectedTag ? "text-foreground" : "text-muted-foreground"}>
+                    {selectedTag ? allTags.find(t => t.slug === selectedTag)?.name || selectedTag : "Select a tag..."}
+                  </span>
+                </div>
+                {showTagDropdown && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => { setShowTagDropdown(false); setTagSearch(""); }} />
+                    <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-card border border-border rounded-lg shadow-lg overflow-hidden max-h-60">
+                      <div className="p-2 border-b border-border/50">
+                        <div className="relative">
+                          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+                          <input
+                            value={tagSearch}
+                            onChange={(e) => setTagSearch(e.target.value)}
+                            placeholder="Search tags..."
+                            className="w-full pl-8 pr-3 py-1.5 text-sm bg-transparent border-0 outline-none placeholder:text-muted-foreground/40"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+                      <div className="overflow-y-auto max-h-44">
+                        {filteredTags.map(t => (
+                          <button
+                            key={t.id}
+                            onClick={() => { setSelectedTag(t.slug); setShowTagDropdown(false); setTagSearch(""); }}
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-muted/50 transition-colors flex items-center justify-between ${selectedTag === t.slug ? "bg-primary/5 text-primary" : "text-foreground"}`}
+                          >
+                            <div>
+                              <span className="font-medium">{t.name}</span>
+                              {t.description && <p className="text-[11px] text-muted-foreground/60 mt-0.5 line-clamp-1">{t.description}</p>}
+                            </div>
+                            {selectedTag === t.slug && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+                          </button>
+                        ))}
+                        {filteredTags.length === 0 && (
+                          <div className="px-3 py-4 text-xs text-center text-muted-foreground/50">No matching tags</div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              {selectedTag && (
+                <button
+                  onClick={() => setSelectedTag("")}
+                  className="text-[11px] text-muted-foreground/50 hover:text-foreground mt-1.5 transition-colors"
+                >
+                  Clear tag
+                </button>
+              )}
+            </div>
+
             {/* Collection */}
             <div className="mb-6">
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
@@ -447,6 +533,82 @@ export default function WritePage() {
         </button>
       )}
 
+      {/* ─── Pre-Publish Tag Modal ─── */}
+      {showPublishModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowPublishModal(false)} />
+          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-xl p-6 animate-in fade-in-0 zoom-in-95 duration-200">
+            <button onClick={() => setShowPublishModal(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Tag className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-serif text-lg font-semibold text-foreground">Tag your poem</h3>
+                <p className="text-xs text-muted-foreground">One last thing before publishing</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+              Tags help readers discover your work by theme. Choose one tag that best describes this poem -- it helps your poetry reach the right audience and appear in curated feeds.
+            </p>
+
+            {/* Tag selector in modal */}
+            <div className="relative mb-4">
+              <div className="relative">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                <input
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  placeholder="Search for a tag..."
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-background border border-border rounded-lg outline-none focus:ring-1 focus:ring-primary/30 placeholder:text-muted-foreground/40"
+                  autoFocus
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                {filteredTags.map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => { setSelectedTag(t.slug); setTagSearch(""); }}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                      selectedTag === t.slug
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border text-foreground hover:border-primary/40 hover:bg-primary/5"
+                    }`}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+                {filteredTags.length === 0 && (
+                  <span className="text-xs text-muted-foreground/50 py-2 w-full text-center">No matching tags found</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={() => setShowPublishModal(false)}
+              >
+                Go back
+              </Button>
+              <Button
+                className="flex-1 gap-1.5"
+                onClick={doPublish}
+                disabled={!selectedTag || publishing}
+              >
+                <Send className="w-3.5 h-3.5" />
+                {publishing ? "Publishing..." : "Publish"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── Mobile bottom bar ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-background/90 backdrop-blur-sm border-t border-border/40 px-4 py-2.5 flex items-center justify-between sm:hidden">
         <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
@@ -471,7 +633,7 @@ export default function WritePage() {
           <Button
             size="sm"
             className="h-7 text-[11px] px-3"
-            onClick={handlePublish}
+            onClick={handlePublishAttempt}
             disabled={publishing || (!title.trim() && !content.trim())}
           >
             <Send className="w-3 h-3 mr-1" />

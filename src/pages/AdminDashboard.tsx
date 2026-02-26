@@ -28,14 +28,170 @@ import {
   Search as SearchIcon,
   DoorOpen,
   X,
-  Trophy
+  Trophy,
+  Tag,
+  Pencil
 } from "lucide-react";
 import { mockPoets, mockPoems, mockChallenges } from "@/lib/mockData";
-import { getCommunityPosts, getBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, getAccountDeletionRequests, dismissDeletionRequest } from "@/lib/storage";
+import { getCommunityPosts, getBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, getAccountDeletionRequests, dismissDeletionRequest, getTags, addTag, deleteTag, updateTag as updateTagStorage, PoemTag } from "@/lib/storage";
 import { BlogPost, AccountDeletionRequest } from "@/types";
 
 function generateSlug(title: string): string {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function TagsPanel() {
+  const [tags, setTags] = useState<PoemTag[]>(getTags());
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagDesc, setNewTagDesc] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const reload = () => setTags(getTags());
+
+  const handleAdd = () => {
+    if (!newTagName.trim()) return;
+    addTag(newTagName.trim(), newTagDesc.trim() || undefined);
+    setNewTagName("");
+    setNewTagDesc("");
+    reload();
+  };
+
+  const handleDelete = (id: string) => {
+    deleteTag(id);
+    reload();
+  };
+
+  const handleStartEdit = (tag: PoemTag) => {
+    setEditingId(tag.id);
+    setEditName(tag.name);
+    setEditDesc(tag.description || "");
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingId || !editName.trim()) return;
+    updateTagStorage(editingId, { name: editName.trim(), description: editDesc.trim() || undefined });
+    setEditingId(null);
+    reload();
+  };
+
+  const filtered = searchQuery
+    ? tags.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : tags;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Tags</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage tags that poets can assign to their poems. Tags help readers discover poetry by theme.
+          </p>
+        </div>
+        <span className="text-sm text-gray-500 font-medium">{tags.length} tags</span>
+      </div>
+
+      {/* Add New Tag */}
+      <Card className="p-5">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Add New Tag</h3>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Input
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            placeholder="Tag name (e.g. Nostalgia)"
+            className="flex-1"
+            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+          />
+          <Input
+            value={newTagDesc}
+            onChange={(e) => setNewTagDesc(e.target.value)}
+            placeholder="Short description (optional)"
+            className="flex-[2]"
+            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+          />
+          <Button onClick={handleAdd} disabled={!newTagName.trim()}>
+            <Plus className="w-4 h-4 mr-1.5" />
+            Add
+          </Button>
+        </div>
+      </Card>
+
+      {/* Search */}
+      <div className="relative">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search tags..."
+          className="pl-9"
+        />
+      </div>
+
+      {/* Tags List */}
+      <div className="space-y-2">
+        {filtered.map((tag) => (
+          <Card key={tag.id} className="p-4">
+            {editingId === tag.id ? (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="flex-1"
+                  autoFocus
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(); if (e.key === "Escape") setEditingId(null); }}
+                />
+                <Input
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  placeholder="Description"
+                  className="flex-[2]"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSaveEdit(); if (e.key === "Escape") setEditingId(null); }}
+                />
+                <div className="flex gap-1.5">
+                  <Button size="sm" onClick={handleSaveEdit} disabled={!editName.trim()}>
+                    <Save className="w-3.5 h-3.5 mr-1" /> Save
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-gray-900 bg-gray-100 px-2.5 py-1 rounded-full">
+                      <Tag className="w-3 h-3" />
+                      {tag.name}
+                    </span>
+                    <span className="text-xs text-gray-400">/{tag.slug}</span>
+                  </div>
+                  {tag.description && (
+                    <p className="text-sm text-gray-500 mt-1 truncate">{tag.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <Button size="sm" variant="ghost" onClick={() => handleStartEdit(tag)}>
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(tag.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        ))}
+        {filtered.length === 0 && (
+          <div className="text-center py-8 text-gray-400">
+            {searchQuery ? "No tags match your search." : "No tags yet. Add one above."}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 const EMPTY_FORM: Omit<BlogPost, "id" | "createdAt" | "updatedAt"> = {
@@ -229,6 +385,7 @@ export default function AdminDashboard() {
             { key: "users", label: "Users & Poets", icon: Users },
             { key: "content", label: "Content", icon: FileText },
             { key: "challenges", label: "Challenges", icon: Trophy },
+            { key: "tags", label: "Tags", icon: Tag },
             { key: "blog", label: "Blog", icon: BookOpen },
             { key: "leaving", label: "Leaving WordStack", icon: DoorOpen },
             { key: "settings", label: "Settings", icon: Settings },
@@ -427,6 +584,9 @@ export default function AdminDashboard() {
             </Card>
           </div>
         )}
+
+        {/* Tags Tab */}
+        {activeTab === "tags" && <TagsPanel />}
 
         {/* Blog Tab */}
         {activeTab === "blog" && (
