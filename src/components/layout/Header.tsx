@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Feather, User, Settings, Edit, PenLine, BookOpen, Bell, LogOut, X, Menu, Wallet, Shield } from "lucide-react";
+import { Feather, User, Settings, Edit, PenLine, Bell, LogOut, X, Menu, Wallet, Shield } from "lucide-react";
 import { getCurrentUser, logout } from "@/lib/auth";
 import { getUnreadNotificationsCount, getUserInkBalance } from "@/lib/storage";
 
@@ -195,15 +195,6 @@ export default function Header() {
                     >
                       <PenLine className="w-5 h-5 text-muted-foreground" />
                       <span className="font-medium">Write</span>
-                    </Link>
-                    
-                    <Link
-                      to="/collections"
-                      onClick={closeMenu}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
-                    >
-                      <BookOpen className="w-5 h-5 text-muted-foreground" />
-                      <span className="font-medium">Collections</span>
                     </Link>
                     
                     <Link
