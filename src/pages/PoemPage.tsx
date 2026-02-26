@@ -193,29 +193,36 @@ export default function PoemPage() {
           </div>
         </div>
 
-        {/* Written by -- avatar + name */}
+        {/* Written by -- avatar + name + bio */}
         <div className="py-5 border-t border-border/30">
           <Link
             to={`/poet/${poem.poetId}`}
-            className="flex items-center gap-3 group"
+            className="block group"
           >
-            {poem.poetAvatar ? (
-              <img
-                src={poem.poetAvatar}
-                alt={poem.poetName}
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                <User className="w-5 h-5 text-muted-foreground" />
-              </div>
+            <div className="flex items-center gap-3 mb-3">
+              {poem.poetAvatar ? (
+                <img
+                  src={poem.poetAvatar}
+                  alt={poem.poetName}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                  <User className="w-5 h-5 text-muted-foreground" />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Written by{" "}
+                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                  {poem.poetName}
+                </span>
+              </p>
+            </div>
+            {poet?.bio && (
+              <p className="text-sm text-muted-foreground italic leading-relaxed pl-13">
+                {poet.bio}
+              </p>
             )}
-            <p className="text-sm text-muted-foreground">
-              Written by{" "}
-              <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                {poem.poetName}
-              </span>
-            </p>
           </Link>
         </div>
 
