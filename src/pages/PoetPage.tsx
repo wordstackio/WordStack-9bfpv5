@@ -1,9 +1,8 @@
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { BookOpen, Filter, ExternalLink, Twitter, Instagram, Globe } from "lucide-react";
-import { mockPoets, mockPoems, mockCollections, mockUpdates } from "@/lib/mockData";
+import { BookOpen, ExternalLink, Twitter, Instagram, Globe } from "lucide-react";
+import { mockPoets, mockPoems, mockUpdates } from "@/lib/mockData";
 import PoemCard from "@/components/features/PoemCard";
 import { getCurrentUser } from "@/lib/auth";
 import { isFollowing, followPoet, unfollowPoet } from "@/lib/storage";
@@ -17,14 +16,12 @@ export default function PoetPage() {
   
   const poet = mockPoets.find(p => p.id === id);
   const [following, setFollowing] = useState(poet ? isFollowing(poet.id) : false);
-  const [filterCollection, setFilterCollection] = useState<string | null>(null);
   const [showGiveClaps, setShowGiveClaps] = useState(false);
 
   useEffect(() => {
     // Reset state when navigating between poet pages
     if (poet) {
       setFollowing(isFollowing(poet.id));
-      setFilterCollection(null);
     }
   }, [poet, id, location]);
   
@@ -37,13 +34,8 @@ export default function PoetPage() {
   }
 
   const poetPoems = mockPoems.filter(p => p.poetId === poet.id);
-  const poetCollections = mockCollections.filter(c => c.poetId === poet.id);
   const poetUpdates = mockUpdates.filter(u => u.poetId === poet.id);
   const featuredPoem = poetPoems.find(p => p.isPinned) || poetPoems[0];
-  
-  const filteredPoems = filterCollection
-    ? poetPoems.filter(p => p.collectionIds?.includes(filterCollection))
-    : poetPoems;
 
   const handleFollow = () => {
     if (!user) {
@@ -198,81 +190,22 @@ export default function PoetPage() {
       {/* 3. Poetry Library Section */}
       <section id="poems" className="py-8 md:py-16">
         <div className="container mx-auto px-4 max-w-4xl">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-6 md:h-8 bg-primary rounded"></div>
-              <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">
-                Poetry Library
-              </h2>
-            </div>
-            
-            {poetCollections.length > 0 && (
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Filter className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <select 
-                  className="bg-background text-foreground border border-border rounded px-3 py-1.5 text-sm w-full sm:w-auto"
-                  value={filterCollection || ""}
-                  onChange={(e) => setFilterCollection(e.target.value || null)}
-                >
-                  <option value="">All Poems</option>
-                  {poetCollections.map(col => (
-                    <option key={col.id} value={col.id}>{col.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
+          <div className="flex items-center gap-2 mb-6 md:mb-8">
+            <div className="w-1 h-6 md:h-8 bg-primary rounded"></div>
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">
+              Poetry Library
+            </h2>
           </div>
 
           <div className="space-y-4 md:space-y-6">
-            {filteredPoems.map(poem => (
+            {poetPoems.map(poem => (
               <PoemCard key={poem.id} poem={poem} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* 4. Collections Section */}
-      {poetCollections.length > 0 && (
-        <section className="py-8 md:py-16 bg-muted/30">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <div className="flex items-center gap-2 mb-6 md:mb-8">
-              <div className="w-1 h-6 md:h-8 bg-primary rounded"></div>
-              <h2 className="font-serif text-2xl md:text-3xl font-bold text-foreground">
-                Collections
-              </h2>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-4">
-              {poetCollections.map(collection => (
-                <Link key={collection.id} to={`/collection/${collection.id}`}>
-                  <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer h-full">
-                    {collection.coverImage && (
-                      <img 
-                        src={collection.coverImage} 
-                        alt={collection.name}
-                        className="w-full h-32 object-cover rounded mb-4"
-                      />
-                    )}
-                    <h3 className="font-serif text-xl font-semibold mb-2 hover:text-primary transition-colors text-foreground">
-                      {collection.name}
-                    </h3>
-                    {collection.description && (
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {collection.description}
-                      </p>
-                    )}
-                    <p className="text-muted-foreground text-sm">
-                      {collection.poemIds.length} {collection.poemIds.length === 1 ? 'poem' : 'poems'}
-                    </p>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 5. Support Section */}
+      {/* 4. Support Section */}
       <section className="py-8 md:py-16 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-4 max-w-3xl text-center">
           <div className="text-5xl mb-4 md:mb-6">{'👏'}</div>
