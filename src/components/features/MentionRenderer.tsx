@@ -4,9 +4,10 @@ import { formatMentions } from "@/lib/mentions";
 interface MentionRendererProps {
   content: string;
   className?: string;
+  asFragment?: boolean;
 }
 
-export default function MentionRenderer({ content, className }: MentionRendererProps) {
+export default function MentionRenderer({ content, className, asFragment = false }: MentionRendererProps) {
   const parts = formatMentions(
     content,
     (username, key) => (
@@ -20,6 +21,10 @@ export default function MentionRenderer({ content, className }: MentionRendererP
       </Fragment>
     )
   );
+
+  if (asFragment) {
+    return <>{parts}</>;
+  }
 
   return (
     <p className={`whitespace-pre-wrap ${className || ""}`}>

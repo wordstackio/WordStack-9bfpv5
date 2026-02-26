@@ -89,7 +89,7 @@ function CommentBubble({
                 </span>
               </div>
               <p className="text-sm text-foreground/85 leading-relaxed mt-1 whitespace-pre-wrap">
-                <MentionRenderer content={comment.content} className="text-sm text-foreground/85 leading-relaxed mt-1" />
+                <MentionRenderer content={comment.content} asFragment={true} />
               </p>
               <div className="flex items-center gap-4 mt-2">
                 <button
