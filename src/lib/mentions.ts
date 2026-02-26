@@ -62,10 +62,11 @@ export function formatMentions(content: string, renderMention: (username: string
   const parts = content.split(mentionRegex);
   
   return parts.map((part, index) => {
+    if (!part) return null; // Skip empty strings
     if (part.startsWith('@')) {
       const username = part.slice(1); // Remove @
       return renderMention(username, `mention-${index}`);
     }
     return renderText(part, `text-${index}`);
-  });
+  }).filter(Boolean); // Filter out null values
 }

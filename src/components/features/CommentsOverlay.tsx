@@ -88,9 +88,9 @@ function CommentBubble({
                   {shortTimeAgo(comment.createdAt)}
                 </span>
               </div>
-              <p className="text-sm text-foreground/85 leading-relaxed mt-1 whitespace-pre-wrap">
+              <div className="text-sm text-foreground/85 leading-relaxed mt-1 whitespace-pre-wrap">
                 <MentionRenderer content={comment.content} asFragment={true} />
-              </p>
+              </div>
               <div className="flex items-center gap-4 mt-2">
                 <button
                   onClick={handleClap}
