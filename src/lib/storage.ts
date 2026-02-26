@@ -716,13 +716,10 @@ export function createComment(
   content: string,
   parentCommentId?: string
 ): Comment {
-  // Extract @mentions
-  const mentionRegex = /@(\w+)/g;
-  const mentions: string[] = [];
-  let match;
-  while ((match = mentionRegex.exec(content)) !== null) {
-    mentions.push(match[1]);
-  }
+  const { extractMentions, getMentionedUserIds } = require("./mentions");
+  
+  const mentions = extractMentions(content);
+  const mentionedUserIds = getMentionedUserIds(content);
 
   const comment: Comment = {
     id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -780,19 +777,20 @@ export function createComment(
   }
 
   // Mention notifications
-  mentions.forEach(mentionName => {
-    // In a real app, you'd look up user ID by username
-    // For now, we'll use the mention as-is
-    createNotification(
-      mentionName,
-      "mention",
-      userId,
-      userName,
-      userAvatar,
-      postId,
-      comment.id,
-      `${userName} mentioned you in a comment`
-    );
+  mentionedUserIds.forEach(mentionedUserId => {
+    // Only notify if it's a valid user ID and not the commenter
+    if (mentionedUserId && mentionedUserId !== userId) {
+      createNotification(
+        mentionedUserId,
+        "mention",
+        userId,
+        userName,
+        userAvatar,
+        postId,
+        comment.id,
+        `${userName} mentioned you in a comment`
+      );
+    }
   });
 
   return comment;
@@ -917,12 +915,10 @@ export function createPoemComment(
   content: string,
   parentCommentId?: string
 ): Comment {
-  const mentionRegex = /@(\w+)/g;
-  const mentions: string[] = [];
-  let match;
-  while ((match = mentionRegex.exec(content)) !== null) {
-    mentions.push(match[1]);
-  }
+  const { extractMentions, getMentionedUserIds } = require("./mentions");
+  
+  const mentions = extractMentions(content);
+  const mentionedUserIds = getMentionedUserIds(content);
 
   const comment: Comment = {
     id: `pcomment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -948,6 +944,23 @@ export function createPoemComment(
     poem.commentsCount++;
     localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
   }
+
+  // Create mention notifications for poem comments
+  mentionedUserIds.forEach(mentionedUserId => {
+    // Only notify if it's a valid user ID and not the commenter
+    if (mentionedUserId && mentionedUserId !== userId) {
+      createNotification(
+        mentionedUserId,
+        "mention",
+        userId,
+        userName,
+        userAvatar,
+        poemId,
+        comment.id,
+        `${userName} mentioned you in a comment on a poem`
+      );
+    }
+  });
 
   return comment;
 }
