@@ -248,6 +248,10 @@ export default function CommentsOverlay({
     return map;
   }, [comments]);
 
+  const topLevelComments = useMemo(() => {
+    return comments.filter((c) => !c.parentCommentId);
+  }, [comments]);
+
   // Sort top-level comments
   const sortedComments = useMemo(() => {
     const sorted = [...topLevelComments];
