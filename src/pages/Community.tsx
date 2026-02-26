@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +90,10 @@ export default function Community() {
   const [outOfInkInfo, setOutOfInkInfo] = useState<{ dailyUsed: number; monthlyUsed: number; timeUntilReset: string }>(
     { dailyUsed: 0, monthlyUsed: 0, timeUntilReset: "" }
   );
+  const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; name: string; avatar: string }>>({});
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState<Record<string, boolean>>({});
+  const [activeMentionInputId, setActiveMentionInputId] = useState<string | null>(null);
+  const suggestionsRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (!user) {
@@ -110,10 +114,61 @@ export default function Community() {
     return () => clearInterval(interval);
   }, [user, navigate, searchParams]);
 
+  // Close mention suggestions on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      Object.entries(suggestionsRefs.current).forEach(([key, ref]) => {
+        if (ref && !ref.contains(e.target as Node)) {
+          setShowMentionSuggestions(prev => ({ ...prev, [key]: false }));
+        }
+      });
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Detect @mentions for autocomplete
+  useEffect(() => {
+    Object.entries(commentInputs).forEach(([inputId, content]) => {
+      const lastAtIndex = content.lastIndexOf("@");
+      if (lastAtIndex === -1 || (lastAtIndex > 0 && content[lastAtIndex - 1] !== " " && content[lastAtIndex - 1] !== "\n")) {
+        setShowMentionSuggestions(prev => ({ ...prev, [inputId]: false }));
+        return;
+      }
+
+      const textAfterAt = content.substring(lastAtIndex + 1);
+      const mentionRegex = /^\w*$/;
+      
+      if (!mentionRegex.test(textAfterAt)) {
+        setShowMentionSuggestions(prev => ({ ...prev, [inputId]: false }));
+        return;
+      }
+
+      // Filter poets based on text after @
+      const filtered = mockPoets.filter(poet =>
+        poet.name.toLowerCase().includes(textAfterAt.toLowerCase()) &&
+        poet.id !== user?.id // Don't suggest mentioning yourself
+      );
+
+      setMentionSuggestions(prev => ({ ...prev, [inputId]: filtered }));
+      setShowMentionSuggestions(prev => ({ ...prev, [inputId]: filtered.length > 0 && textAfterAt.length > 0 }));
+    });
+  }, [commentInputs, user?.id]);
+
   const loadNotifications = () => {
     if (user) {
       setUnreadCount(getUnreadNotificationsCount(user.id));
     }
+  };
+
+  const handleSelectMention = (poetName: string, inputId: string) => {
+    const content = commentInputs[inputId] || "";
+    const lastAtIndex = content.lastIndexOf("@");
+    const beforeMention = content.substring(0, lastAtIndex);
+    
+    const updatedComment = beforeMention + "@" + poetName + " ";
+    setCommentInputs({ ...commentInputs, [inputId]: updatedComment });
+    setShowMentionSuggestions(prev => ({ ...prev, [inputId]: false }));
   };
 
   const loadPosts = () => {
@@ -269,19 +324,49 @@ export default function Community() {
             </div>
             
             {isReplying && (
-              <div className="mt-2 flex gap-2">
-                <Input
-                  value={commentInputs[comment.id] || ""}
-                  onChange={(e) => setCommentInputs({ ...commentInputs, [comment.id]: e.target.value })}
-                  placeholder={`Reply to ${comment.userName}...`}
-                  className="text-sm h-8 border-muted bg-transparent"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleCommentSubmit(comment.postId, comment.id);
-                    }
-                  }}
-                />
+              <div className="mt-2 flex gap-2 relative">
+                <div className="flex-1 relative">
+                  <Input
+                    value={commentInputs[comment.id] || ""}
+                    onChange={(e) => setCommentInputs({ ...commentInputs, [comment.id]: e.target.value })}
+                    onFocus={() => setActiveMentionInputId(comment.id)}
+                    onBlur={() => setActiveMentionInputId(null)}
+                    placeholder={`Reply to ${comment.userName}...`}
+                    className="text-sm h-8 border-muted bg-transparent w-full"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleCommentSubmit(comment.postId, comment.id);
+                      }
+                    }}
+                  />
+                  {/* Mention Suggestions Dropdown for Replies */}
+                  {showMentionSuggestions[comment.id] && mentionSuggestions[comment.id]?.length > 0 && (
+                    <div
+                      ref={(el) => {
+                        if (el) suggestionsRefs.current[comment.id] = el;
+                      }}
+                      className="absolute bottom-full left-0 mb-1 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto"
+                    >
+                      {mentionSuggestions[comment.id]?.map((poet) => (
+                        <button
+                          key={poet.id}
+                          onClick={() => handleSelectMention(poet.name.replace(/\s+/g, ''), comment.id)}
+                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-b-0"
+                        >
+                          {poet.avatar ? (
+                            <img src={poet.avatar} alt={poet.name} className="w-6 h-6 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                              <Feather className="w-3 h-3 text-muted-foreground" />
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-foreground">{poet.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -680,7 +765,7 @@ export default function Community() {
                               followsPoet;
 
                             return canReply ? (
-                              <div className="flex gap-2.5">
+                              <div className="flex gap-2.5 relative">
                                 <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-muted">
                                   {user.avatar ? (
                                     <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
@@ -690,19 +775,49 @@ export default function Community() {
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex-1 flex gap-2">
-                                  <Input
-                                    value={commentInputs[post.id] || ""}
-                                    onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                    placeholder="Post your reply... (use @username to mention)"
-                                    className="text-sm h-8 border-muted bg-transparent rounded-full px-3"
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleCommentSubmit(post.id);
-                                      }
-                                    }}
-                                  />
+                                <div className="flex-1 flex gap-2 relative">
+                                  <div className="flex-1 relative">
+                                    <Input
+                                      value={commentInputs[post.id] || ""}
+                                      onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                                      onFocus={() => setActiveMentionInputId(post.id)}
+                                      onBlur={() => setActiveMentionInputId(null)}
+                                      placeholder="Post your reply... (use @username to mention)"
+                                      className="text-sm h-8 border-muted bg-transparent rounded-full px-3 w-full"
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                          e.preventDefault();
+                                          handleCommentSubmit(post.id);
+                                        }
+                                      }}
+                                    />
+                                    {/* Mention Suggestions Dropdown */}
+                                    {showMentionSuggestions[post.id] && mentionSuggestions[post.id]?.length > 0 && (
+                                      <div
+                                        ref={(el) => {
+                                          if (el) suggestionsRefs.current[post.id] = el;
+                                        }}
+                                        className="absolute bottom-full left-0 mb-1 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto"
+                                      >
+                                        {mentionSuggestions[post.id]?.map((poet) => (
+                                          <button
+                                            key={poet.id}
+                                            onClick={() => handleSelectMention(poet.name.replace(/\s+/g, ''), post.id)}
+                                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-b-0"
+                                          >
+                                            {poet.avatar ? (
+                                              <img src={poet.avatar} alt={poet.name} className="w-6 h-6 rounded-full object-cover" />
+                                            ) : (
+                                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                                                <Feather className="w-3 h-3 text-muted-foreground" />
+                                              </div>
+                                            )}
+                                            <span className="text-sm font-medium text-foreground">{poet.name}</span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
                                   <Button
                                     size="sm"
                                     variant="ghost"

@@ -778,8 +778,8 @@ export function createComment(
 
   // Mention notifications
   mentionedUserIds.forEach(mentionedUserId => {
-    // Only notify if it's a valid user ID (not the same as the mention name) and not the commenter
-    if (mentionedUserId !== mentionedUserId.toLowerCase() && mentionedUserId !== userId) {
+    // Only notify if it's a valid user ID and not the commenter
+    if (mentionedUserId && mentionedUserId !== userId) {
       createNotification(
         mentionedUserId,
         "mention",
@@ -947,8 +947,8 @@ export function createPoemComment(
 
   // Create mention notifications for poem comments
   mentionedUserIds.forEach(mentionedUserId => {
-    // Only notify if it's a valid user ID (not the same as the mention name)
-    if (mentionedUserId !== mentionedUserId.toLowerCase() && mentionedUserId !== userId) {
+    // Only notify if it's a valid user ID and not the commenter
+    if (mentionedUserId && mentionedUserId !== userId) {
       createNotification(
         mentionedUserId,
         "mention",

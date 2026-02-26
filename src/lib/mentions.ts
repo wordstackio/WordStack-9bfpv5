@@ -15,13 +15,32 @@ export function extractMentions(content: string): string[] {
 
 /**
  * Resolve a mentioned username to a user ID
- * Returns the user ID if found, otherwise returns the mention name
+ * Returns the user ID if found, otherwise returns null
  */
-export function resolveMentionToUserId(mentionName: string): string {
-  const poet = mockPoets.find(p => 
-    p.name.toLowerCase().replace(/\s+/g, '') === mentionName.toLowerCase()
+export function resolveMentionToUserId(mentionName: string): string | null {
+  // First try exact match (case-insensitive, spaces removed)
+  const normalizedMention = mentionName.toLowerCase();
+  
+  let poet = mockPoets.find(p => 
+    p.name.toLowerCase().replace(/\s+/g, '') === normalizedMention
   );
-  return poet ? poet.id : mentionName;
+  
+  if (poet) return poet.id;
+  
+  // Try matching first name or last name
+  poet = mockPoets.find(p => {
+    const nameParts = p.name.toLowerCase().split(/\s+/);
+    return nameParts.some(part => part === normalizedMention);
+  });
+  
+  if (poet) return poet.id;
+  
+  // Try partial match
+  poet = mockPoets.find(p => 
+    p.name.toLowerCase().includes(normalizedMention)
+  );
+  
+  return poet ? poet.id : null;
 }
 
 /**
@@ -29,7 +48,9 @@ export function resolveMentionToUserId(mentionName: string): string {
  */
 export function getMentionedUserIds(content: string): string[] {
   const mentions = extractMentions(content);
-  return mentions.map(resolveMentionToUserId);
+  return mentions
+    .map(resolveMentionToUserId)
+    .filter((id): id is string => id !== null);
 }
 
 /**
