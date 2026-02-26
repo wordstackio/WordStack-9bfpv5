@@ -15,10 +15,11 @@ import {
   clapComment,
   getCommentClaps,
   getUnreadNotificationsCount,
-  votePoll
+  votePoll,
+  isFollowing
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
-import { Users, MessageCircle, Send, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart, ExternalLink, BarChart3, Quote } from "lucide-react";
+import { Users, MessageCircle, Send, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart, ExternalLink, BarChart3, Quote, Lock, Globe } from "lucide-react";
 import { Fragment } from "react";
 import { mockPoets } from "@/lib/mockData";
 import OutOfInkModal from "@/components/features/OutOfInkModal";
@@ -678,41 +679,70 @@ export default function Community() {
                       {/* Comments Section */}
                       {expandedComments.has(post.id) && (
                         <div className="mt-2 pt-2 border-t border-border/50">
-                          {/* Comment Input */}
-                          <div className="flex gap-2.5">
-                            <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                              {user.avatar ? (
-                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <Feather className="w-3.5 h-3.5 text-muted-foreground" />
+                          {/* Reply Permission Indicator */}
+                          {post.replyPermission === "followers" && (
+                            <div className="flex items-center gap-1.5 mb-2 px-1">
+                              <Users className="w-3 h-3 text-muted-foreground/60" />
+                              <span className="text-[11px] text-muted-foreground/60">
+                                Only followers can reply
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Comment Input (permission-gated) */}
+                          {(() => {
+                            const isOwner = post.poetId === user.id;
+                            const followsPoet = isFollowing(post.poetId);
+                            const canReply =
+                              !post.replyPermission ||
+                              post.replyPermission === "everyone" ||
+                              isOwner ||
+                              followsPoet;
+
+                            return canReply ? (
+                              <div className="flex gap-2.5">
+                                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-muted">
+                                  {user.avatar ? (
+                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Feather className="w-3.5 h-3.5 text-muted-foreground" />
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                            <div className="flex-1 flex gap-2">
-                              <Input
-                                value={commentInputs[post.id] || ""}
-                                onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                placeholder="Post your reply..."
-                                className="text-sm h-8 border-muted bg-transparent rounded-full px-3"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    handleCommentSubmit(post.id);
-                                  }
-                                }}
-                              />
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleCommentSubmit(post.id)}
-                                disabled={!commentInputs[post.id]?.trim()}
-                                className="h-8 px-2 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
-                              >
-                                <Send className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </div>
+                                <div className="flex-1 flex gap-2">
+                                  <Input
+                                    value={commentInputs[post.id] || ""}
+                                    onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
+                                    placeholder="Post your reply..."
+                                    className="text-sm h-8 border-muted bg-transparent rounded-full px-3"
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleCommentSubmit(post.id);
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleCommentSubmit(post.id)}
+                                    disabled={!commentInputs[post.id]?.trim()}
+                                    className="h-8 px-2 text-primary hover:text-primary hover:bg-primary/10 rounded-full"
+                                  >
+                                    <Send className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 px-3 py-2.5 rounded-full bg-muted/40 border border-border/50">
+                                <Lock className="w-3.5 h-3.5 text-muted-foreground/50" />
+                                <span className="text-xs text-muted-foreground">
+                                  Follow <span className="font-medium text-foreground/70">{post.poetName}</span> to reply
+                                </span>
+                              </div>
+                            );
+                          })()}
                           
                           {/* Comments List */}
                           <div>

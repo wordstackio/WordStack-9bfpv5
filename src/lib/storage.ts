@@ -498,6 +498,7 @@ export function createCommunityPost(
     link?: { url: string; title?: string; description?: string; image?: string; domain?: string };
     poll?: PostPoll;
     quote?: QuoteRef;
+    replyPermission?: "everyone" | "followers";
   }
 ): CommunityPost {
   const post: CommunityPost = {
@@ -510,6 +511,7 @@ export function createCommunityPost(
     ...(extras?.link ? { link: extras.link } : {}),
     ...(extras?.poll ? { poll: extras.poll } : {}),
     ...(extras?.quote ? { quote: extras.quote } : {}),
+    replyPermission: extras?.replyPermission || "everyone",
     createdAt: new Date().toISOString(),
     likesCount: 0,
     commentsCount: 0

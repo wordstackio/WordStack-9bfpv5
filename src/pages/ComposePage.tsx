@@ -18,6 +18,8 @@ import {
   ChevronDown,
   ExternalLink,
   Loader2,
+  Users,
+  Check,
 } from "lucide-react";
 
 type AttachmentMode = null | "image" | "link" | "poll" | "quote";
@@ -155,6 +157,10 @@ export default function ComposePage() {
   // Quote state
   const [selectedQuote, setSelectedQuote] = useState<QuoteRef | null>(null);
   const [quoteSearch, setQuoteSearch] = useState("");
+
+  // Reply permission state
+  const [replyPermission, setReplyPermission] = useState<"everyone" | "followers">("everyone");
+  const [showReplyMenu, setShowReplyMenu] = useState(false);
 
   const didFocusRef = useRef(false);
 
@@ -315,6 +321,8 @@ export default function ComposePage() {
       extras.quote = selectedQuote;
     }
 
+    extras.replyPermission = replyPermission;
+
     createCommunityPost(user.id, user.name, user.avatar, content, extras);
     navigate("/community");
   };
@@ -385,9 +393,16 @@ export default function ComposePage() {
 
             <div className="flex-1 min-w-0">
               {/* Audience Selector */}
-              <button className="flex items-center gap-1 text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-0.5 mb-3 hover:bg-primary/5 transition-colors">
-                <Globe className="w-3.5 h-3.5" />
-                Everyone
+              <button
+                onClick={() => setShowReplyMenu((v) => !v)}
+                className="flex items-center gap-1 text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-0.5 mb-3 hover:bg-primary/5 transition-colors"
+              >
+                {replyPermission === "everyone" ? (
+                  <Globe className="w-3.5 h-3.5" />
+                ) : (
+                  <Users className="w-3.5 h-3.5" />
+                )}
+                {replyPermission === "everyone" ? "Everyone" : "Followers"}
                 <ChevronDown className="w-3 h-3" />
               </button>
 
@@ -719,11 +734,65 @@ export default function ComposePage() {
       {/* Bottom Bar */}
       <div className="border-t border-border bg-background">
         {/* Reply Audience */}
-        <div className="px-4 py-2 border-b border-border/50">
-          <button className="flex items-center gap-1.5 text-sm text-primary font-semibold">
-            <Globe className="w-4 h-4" />
-            Everyone can reply
+        <div className="px-4 py-2 border-b border-border/50 relative">
+          <button
+            onClick={() => setShowReplyMenu((v) => !v)}
+            className="flex items-center gap-1.5 text-sm text-primary font-semibold"
+          >
+            {replyPermission === "everyone" ? (
+              <Globe className="w-4 h-4" />
+            ) : (
+              <Users className="w-4 h-4" />
+            )}
+            {replyPermission === "everyone"
+              ? "Everyone can reply"
+              : "Followers only"}
+            <ChevronDown className="w-3 h-3" />
           </button>
+
+          {showReplyMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowReplyMenu(false)}
+              />
+              <div className="absolute bottom-full left-4 mb-1 z-50 bg-card border border-border rounded-xl shadow-lg overflow-hidden min-w-[200px]">
+                <p className="text-xs font-semibold text-muted-foreground px-3.5 pt-3 pb-1.5">
+                  Who can reply?
+                </p>
+                <button
+                  onClick={() => {
+                    setReplyPermission("everyone");
+                    setShowReplyMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 hover:bg-muted/50 transition-colors"
+                >
+                  <Globe className="w-4 h-4 text-foreground" />
+                  <span className="flex-1 text-left text-sm text-foreground">
+                    Everyone
+                  </span>
+                  {replyPermission === "everyone" && (
+                    <Check className="w-4 h-4 text-primary" />
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setReplyPermission("followers");
+                    setShowReplyMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 hover:bg-muted/50 transition-colors"
+                >
+                  <Users className="w-4 h-4 text-foreground" />
+                  <span className="flex-1 text-left text-sm text-foreground">
+                    Followers only
+                  </span>
+                  {replyPermission === "followers" && (
+                    <Check className="w-4 h-4 text-primary" />
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Toolbar + Character Count */}
