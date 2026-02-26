@@ -126,6 +126,7 @@ export interface CommunityPost {
   link?: { url: string; title?: string; description?: string; image?: string; domain?: string };
   poll?: PostPoll;
   quote?: QuoteRef;
+  replyPermission?: "everyone" | "followers";
   createdAt: string;
   clapsCount: number;
   likesCount: number;
