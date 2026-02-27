@@ -337,8 +337,8 @@ export default function CommentsOverlay({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200">
-      <div className="w-full sm:max-w-lg bg-background sm:rounded-xl sm:border sm:border-border sm:shadow-lg h-full sm:h-[85vh] sm:max-h-[700px] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300">
+    <div className="fixed inset-0 bg-black/50 z-40 flex items-end sm:items-center justify-center animate-in fade-in duration-200">
+      <div className="w-full sm:max-w-lg bg-background sm:rounded-xl sm:border sm:border-border sm:shadow-lg h-full sm:h-[85vh] sm:max-h-[700px] flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-300 pb-16 sm:pb-0">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/60 flex-shrink-0">
           <button
@@ -407,7 +407,7 @@ export default function CommentsOverlay({
         </div>
 
         {/* Comments List */}
-        <div className="flex-1 overflow-y-auto px-4">
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
           {sortedComments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <p className="text-muted-foreground text-sm">
