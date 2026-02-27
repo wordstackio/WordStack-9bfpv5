@@ -141,7 +141,6 @@ export interface Comment {
   userAvatar?: string;
   content: string;
   parentCommentId?: string; // For nested replies
-  mentions: string[]; // User IDs mentioned in the comment
   createdAt: string;
   likesCount: number;
   likedByUsers: string[]; // Array of user IDs who liked this comment
