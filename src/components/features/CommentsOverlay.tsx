@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { X, User, ArrowLeft, Send, ChevronDown } from "lucide-react";
+import { X, User, Send, ChevronDown } from "lucide-react";
 import { Comment } from "@/types";
 import { shortTimeAgo } from "@/lib/utils";
 import {
@@ -9,7 +9,6 @@ import {
 } from "@/lib/storage";
 import { getCurrentUser } from "@/lib/auth";
 import { useCommentsOverlay } from "@/contexts/CommentsOverlayContext";
-import MentionRenderer from "./MentionRenderer";
 import { mockPoets } from "@/lib/mockData";
 
 type SortMode = "relevant" | "recent";
@@ -28,12 +27,14 @@ function CommentBubble({
   onReply,
   depth = 0,
   parentHasReply = false,
+  poemPoetId,
 }: {
   comment: Comment;
   replies: Comment[];
   onReply: (commentId: string, userName: string) => void;
   depth?: number;
   parentHasReply?: boolean;
+  poemPoetId: string;
 }) {
   const user = getCurrentUser();
   const [localLikes, setLocalLikes] = useState(comment.likesCount);
@@ -104,7 +105,7 @@ function CommentBubble({
                   <span className="text-sm">{isLiked ? "❤️" : "🤍"}</span>
                   {localLikes > 0 && <span>{localLikes}</span>}
                 </button>
-                {depth === 0 && !isLockedForReply && (
+                {depth === 0 && !isLockedForReply && user?.id === poemPoetId && (
                   <button
                     onClick={() => onReply(comment.id, comment.userName)}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
@@ -128,6 +129,7 @@ function CommentBubble({
                 onReply={onReply}
                 depth={depth + 1}
                 parentHasReply={false}
+                poemPoetId={poemPoetId}
               />
             ))}
           </div>
@@ -153,14 +155,10 @@ export default function CommentsOverlay({
     userName: string;
   } | null>(null);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; name: string; avatar: string }>>([]);
-  const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
-  const [mentionIndex, setMentionIndex] = useState(-1);
   const [replyError, setReplyError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Lock body scroll and hide bottom nav
   useEffect(() => {
@@ -192,44 +190,6 @@ export default function CommentsOverlay({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Detect @mentions for autocomplete
-  useEffect(() => {
-    const lastAtIndex = newComment.lastIndexOf("@");
-    if (lastAtIndex === -1 || (lastAtIndex > 0 && newComment[lastAtIndex - 1] !== " " && newComment[lastAtIndex - 1] !== "\n")) {
-      setShowMentionSuggestions(false);
-      return;
-    }
-
-    const textAfterAt = newComment.substring(lastAtIndex + 1);
-    const mentionRegex = /^\w*$/;
-    
-    if (!mentionRegex.test(textAfterAt)) {
-      setShowMentionSuggestions(false);
-      return;
-    }
-
-    // Filter poets based on text after @
-    const filtered = mockPoets.filter(poet =>
-      poet.name.toLowerCase().includes(textAfterAt.toLowerCase()) &&
-      poet.id !== user?.id // Don't suggest mentioning yourself
-    );
-
-    setMentionSuggestions(filtered);
-    setShowMentionSuggestions(filtered.length > 0 && textAfterAt.length > 0);
-    setMentionIndex(-1);
-  }, [newComment, user?.id]);
-
-  const handleSelectMention = (poetName: string) => {
-    const lastAtIndex = newComment.lastIndexOf("@");
-    const textAfterAt = newComment.substring(lastAtIndex + 1);
-    const beforeMention = newComment.substring(0, lastAtIndex);
-    
-    const updatedComment = beforeMention + "@" + poetName + " ";
-    setNewComment(updatedComment);
-    setShowMentionSuggestions(false);
-    inputRef.current?.focus();
-  };
 
   const repliesByParent = useMemo(() => {
     const map: Record<string, Comment[]> = {};
@@ -299,7 +259,7 @@ export default function CommentsOverlay({
     
     // Check if user is the poet (only poet can reply to comments)
     if (!user || user.id !== poemPoetId) {
-      setReplyError("Only the poem's poet can reply to comments.");
+      setReplyError("Only the poet can reply to comments.");
       setTimeout(() => setReplyError(null), 4000);
       return;
     }
@@ -431,6 +391,7 @@ export default function CommentsOverlay({
                     replies={repliesByParent[comment.id] || []}
                     onReply={handleReply}
                     parentHasReply={hasReplyToThisComment}
+                    poemPoetId={poemPoetId}
                   />
                 );
               })}
@@ -485,7 +446,7 @@ export default function CommentsOverlay({
                 onKeyDown={handleKeyDown}
                 placeholder={
                   user
-                    ? "What are your thoughts? (Use @username to mention)"
+                    ? "What are your thoughts?"
                     : "Log in to comment"
                 }
                 disabled={!user}
@@ -502,34 +463,6 @@ export default function CommentsOverlay({
                   target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
                 }}
               />
-              
-              {/* Mention suggestions dropdown */}
-              {showMentionSuggestions && mentionSuggestions.length > 0 && (
-                <div 
-                  ref={suggestionsRef}
-                  className="absolute bottom-full left-0 mb-1 w-full bg-popover border border-border rounded-lg shadow-md z-10 py-1 max-h-[200px] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-150"
-                >
-                  {mentionSuggestions.map((poet, index) => (
-                    <button
-                      key={poet.id}
-                      onClick={() => handleSelectMention(poet.name)}
-                      onMouseEnter={() => setMentionIndex(index)}
-                      className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
-                        index === mentionIndex
-                          ? "text-foreground bg-accent/50"
-                          : "text-muted-foreground hover:bg-accent/30 hover:text-foreground"
-                      }`}
-                    >
-                      <img 
-                        src={poet.avatar} 
-                        alt={poet.name}
-                        className="w-5 h-5 rounded-full object-cover"
-                      />
-                      <span className="font-medium">{poet.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
               
               <button
                 onClick={handleSubmit}

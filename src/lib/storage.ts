@@ -933,9 +933,6 @@ export function createPoemComment(
   parentCommentId?: string,
   isPoetReply: boolean = false
 ): Comment {
-  const mentions = extractMentions(content);
-  const mentionedUserIds = getMentionedUserIds(content);
-
   const comment: Comment = {
     id: `pcomment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     postId: poemId,
@@ -944,7 +941,6 @@ export function createPoemComment(
     userAvatar,
     content,
     parentCommentId,
-    mentions,
     createdAt: new Date().toISOString(),
     likesCount: 0,
     likedByUsers: [],
@@ -962,23 +958,6 @@ export function createPoemComment(
     poem.commentsCount++;
     localStorage.setItem(POEMS_KEY, JSON.stringify(poems));
   }
-
-  // Create mention notifications for poem comments
-  mentionedUserIds.forEach(mentionedUserId => {
-    // Only notify if it's a valid user ID and not the commenter
-    if (mentionedUserId && mentionedUserId !== userId) {
-      createNotification(
-        mentionedUserId,
-        "mention",
-        userId,
-        userName,
-        userAvatar,
-        poemId,
-        comment.id,
-        `${userName} mentioned you in a comment on a poem`
-      );
-    }
-  });
 
   return comment;
 }
