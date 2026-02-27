@@ -8,6 +8,7 @@ import {
   likePoemComment,
 } from "@/lib/storage";
 import { getCurrentUser } from "@/lib/auth";
+import { useCommentsOverlay } from "@/contexts/CommentsOverlayContext";
 import MentionRenderer from "./MentionRenderer";
 import { mockPoets } from "@/lib/mockData";
 
@@ -144,6 +145,7 @@ export default function CommentsOverlay({
   onCommentAdded,
 }: CommentsOverlayProps) {
   const user = getCurrentUser();
+  const { setIsOpen } = useCommentsOverlay();
   const [sortMode, setSortMode] = useState<SortMode>("relevant");
   const [newComment, setNewComment] = useState("");
   const [replyTo, setReplyTo] = useState<{
@@ -160,13 +162,15 @@ export default function CommentsOverlay({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll
+  // Lock body scroll and hide bottom nav
   useEffect(() => {
     document.body.style.overflow = "hidden";
+    setIsOpen(true);
     return () => {
       document.body.style.overflow = "";
+      setIsOpen(false);
     };
-  }, []);
+  }, [setIsOpen]);
 
   // Close dropdown on outside click
   useEffect(() => {

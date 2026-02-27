@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { restoreSession, getCurrentUser } from "@/lib/auth";
+import { CommentsOverlayProvider } from "@/contexts/CommentsOverlayContext";
 import Header from "@/components/layout/Header";
 import BottomNav from "@/components/layout/BottomNav";
 import FAB from "@/components/layout/FAB";
@@ -108,7 +109,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <CommentsOverlayProvider>
+        <AppContent />
+      </CommentsOverlayProvider>
     </BrowserRouter>
   );
 }
