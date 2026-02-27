@@ -213,7 +213,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-dark.jpg",
     content: "The imagery of droplets as small mirrors is stunning. This captures that exact moment between night and day so beautifully.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-20T10:30:00Z",
     likesCount: 12,
     likedByUsers: ["user-2", "user-3", "user-4"]
@@ -226,7 +225,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-headshot.jpg",
     content: "\"Waiting for the sun to decide\" -- what a perfect way to end this. The personification of the sun makes the whole poem feel alive.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-20T14:15:00Z",
     likesCount: 8,
     likedByUsers: ["user-1", "user-5"]
@@ -239,7 +237,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-redhead.jpg",
     content: "Thank you both for reading so closely. That suspended moment is exactly what I was reaching for. The uncertainty feels important.",
     parentCommentId: "pc-2",
-    mentions: [],
     createdAt: "2024-11-20T16:45:00Z",
     likesCount: 4,
     likedByUsers: ["user-1", "user-2"],
@@ -253,7 +250,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-closeup.jpg",
     content: "This reminds me of Bashō. Simple, precise, yet deeply resonant. More of this, please.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-21T08:20:00Z",
     likesCount: 15,
     likedByUsers: ["user-1", "user-2", "user-3", "user-4", "poet-1"]
@@ -267,7 +263,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-older.jpg",
     content: "\"Trains that run on hope\" hits hard. Anyone who has taken the late-night subway knows this feeling.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-18T23:10:00Z",
     likesCount: 20,
     likedByUsers: ["user-1", "user-2", "user-3", "user-5", "poet-2"]
@@ -280,7 +275,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-dark.jpg",
     content: "The economy of words here is masterful. Every line earns its place.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-19T09:30:00Z",
     likesCount: 6,
     likedByUsers: ["user-4", "poet-2"],
@@ -295,7 +289,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-headshot.jpg",
     content: "Aria's work always leaves me unsettled in the best way. \"The dark archive of all you left behind\" is unforgettable.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T11:00:00Z",
     likesCount: 18,
     likedByUsers: ["user-1", "user-3", "user-4", "user-5", "poet-3"]
@@ -308,7 +301,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
     content: "There is something almost sacred about this confession. The raven as witness, as keeper. Gorgeous.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T13:20:00Z",
     likesCount: 11,
     likedByUsers: ["user-1", "user-2", "user-5", "poet-3"]
@@ -321,7 +313,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-casual.jpg",
     content: "Priya -- thank you for understanding what I was trying to reach. That sacredness, that duty of witnessing. It's at the heart of why I write.",
     parentCommentId: "pc-8",
-    mentions: ["Priya"],
     createdAt: "2024-11-22T15:45:00Z",
     likesCount: 7,
     likedByUsers: ["user-3", "user-5", "poet-3"],
@@ -336,7 +327,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-older.jpg",
     content: "This one brought tears. The quiet inheritance of silence, the things that matter too much for words. Real.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-16T07:00:00Z",
     likesCount: 22,
     likedByUsers: ["user-1", "user-2", "user-3", "user-5", "poet-4"]
@@ -350,7 +340,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-dark.jpg",
     content: "Marcus always finds philosophy in the most unexpected places. This is hilarious and profound at the same time.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-11T12:00:00Z",
     likesCount: 9,
     likedByUsers: ["poet-5", "user-3", "user-4"],
@@ -364,7 +353,6 @@ export const mockPoemComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
     content: "\"Aren't we all?\" -- the perfect mic drop ending. I want this on a laundromat wall.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-11T18:30:00Z",
     likesCount: 14,
     likedByUsers: ["user-1", "user-2", "user-4", "user-5"]
@@ -382,7 +370,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-headshot.jpg",
     content: "This is fascinating! I've been wondering how AI can capture the subtleties of meter and rhythm. Great share, Luna.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T18:30:00Z",
     likesCount: 5,
     likedByUsers: ["user-1", "user-3"]
@@ -395,7 +382,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
     content: "The way we're blending technology with traditional poetry feels both exciting and a little scary. What's your take on this?",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T19:45:00Z",
     likesCount: 3,
     likedByUsers: ["user-1", "user-2"]
@@ -409,7 +395,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-older.jpg",
     content: "For me it's the emotional truth. Without that, even perfect form feels hollow. The others can support it, but that's the foundation.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T17:20:00Z",
     likesCount: 8,
     likedByUsers: ["user-1", "user-2", "user-3", "user-5"]
@@ -422,7 +407,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-dark.jpg",
     content: "@Marcus Chen I voted for Rhythm & Sound - I think the musicality of language is what draws readers in first. What do you think?",
     parentCommentId: undefined,
-    mentions: ["Marcus"],
     createdAt: "2024-11-22T18:00:00Z",
     likesCount: 2,
     likedByUsers: ["user-2"]
@@ -436,7 +420,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-closeup.jpg",
     content: "Luna's work always hits differently. The way she compresses so much feeling into so few words is incredible.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T20:15:00Z",
     likesCount: 6,
     likedByUsers: ["user-1", "user-2", "user-3"]
@@ -449,7 +432,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-headshot.jpg",
     content: "@Priya Kapoor Completely agree. This is masterclass in economy of language. I'm going to read her entire catalog.",
     parentCommentId: "cc-5",
-    mentions: ["Priya"],
     createdAt: "2024-11-22T20:45:00Z",
     likesCount: 4,
     likedByUsers: ["user-5"]
@@ -463,7 +445,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
     content: "Friday can't come soon enough! Your work always explores those spaces so beautifully. Excited to see what you've created.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T21:00:00Z",
     likesCount: 7,
     likedByUsers: ["user-1", "user-2", "user-4"]
@@ -476,7 +457,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-older.jpg",
     content: "11 poems about the space between saying and meaning - that's a theme I'm constantly wrestling with. Really looking forward to this.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T21:30:00Z",
     likesCount: 5,
     likedByUsers: ["user-1", "user-3"]
@@ -489,7 +469,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
     content: "The way we're blending technology with traditional poetry feels both exciting and a little scary. What's your take on this?",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T19:45:00Z",
     clapsCount: 3
   },
@@ -502,7 +481,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-older.jpg",
     content: "For me it's the emotional truth. Without that, even perfect form feels hollow. The others can support it, but that's the foundation.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T17:20:00Z",
     clapsCount: 8
   },
@@ -514,7 +492,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-dark.jpg",
     content: "@Marcus Chen I voted for Rhythm & Sound - I think the musicality of language is what draws readers in first. What do you think?",
     parentCommentId: undefined,
-    mentions: ["Marcus"],
     createdAt: "2024-11-22T18:00:00Z",
     clapsCount: 2
   },
@@ -527,7 +504,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-closeup.jpg",
     content: "Luna's work always hits differently. The way she compresses so much feeling into so few words is incredible.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T20:15:00Z",
     clapsCount: 6
   },
@@ -539,7 +515,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-headshot.jpg",
     content: "@Priya Kapoor Completely agree. This is masterclass in economy of language. I'm going to read her entire catalog.",
     parentCommentId: "cc-5",
-    mentions: ["Priya"],
     createdAt: "2024-11-22T20:45:00Z",
     clapsCount: 4
   },
@@ -552,7 +527,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
     content: "Friday can't come soon enough! Your work always explores those spaces so beautifully. Excited to see what you've created.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T21:00:00Z",
     clapsCount: 7
   },
@@ -564,7 +538,6 @@ export const mockCommunityComments: Comment[] = [
     userAvatar: "/images/avatars/avatar-man-older.jpg",
     content: "11 poems about the space between saying and meaning - that's a theme I'm constantly wrestling with. Really looking forward to this.",
     parentCommentId: undefined,
-    mentions: [],
     createdAt: "2024-11-22T21:30:00Z",
     clapsCount: 5
   }
