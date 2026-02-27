@@ -3,14 +3,11 @@ import { X, User, ArrowLeft, Send, ChevronDown } from "lucide-react";
 import { Comment } from "@/types";
 import { shortTimeAgo } from "@/lib/utils";
 import {
+  getPoemComments,
   createPoemComment,
-  clapPoemComment,
-  getPoemCommentClaps,
-  canUseInk,
-  getFreeInkUsage,
+  likePoemComment,
 } from "@/lib/storage";
 import { getCurrentUser } from "@/lib/auth";
-import OutOfInkModal from "./OutOfInkModal";
 import MentionRenderer from "./MentionRenderer";
 import { mockPoets } from "@/lib/mockData";
 
@@ -38,30 +35,21 @@ function CommentBubble({
   parentHasReply?: boolean;
 }) {
   const user = getCurrentUser();
-  const [localClaps, setLocalClaps] = useState(comment.clapsCount);
-  const [showOutOfInk, setShowOutOfInk] = useState(false);
-  const [outOfInkInfo, setOutOfInkInfo] = useState({
-    dailyUsed: 0,
-    monthlyUsed: 0,
-    timeUntilReset: "",
-  });
+  const [localLikes, setLocalLikes] = useState(comment.likesCount);
+  const [isLiked, setIsLiked] = useState(
+    user ? (comment.likedByUsers?.includes(user.id) ?? false) : false
+  );
 
-  const handleClap = () => {
+  const handleLike = () => {
     if (!user) return;
-    const check = canUseInk(user.id);
-    if (!check.canUse) {
-      const usage = getFreeInkUsage(user.id);
-      setOutOfInkInfo({
-        dailyUsed: usage.dailyUsed,
-        monthlyUsed: usage.monthlyUsed,
-        timeUntilReset: check.timeUntilReset || "tomorrow",
-      });
-      setShowOutOfInk(true);
-      return;
+    likePoemComment(user.id, comment.id);
+    
+    if (isLiked) {
+      setLocalLikes((prev) => Math.max(0, prev - 1));
+    } else {
+      setLocalLikes((prev) => prev + 1);
     }
-    if (clapPoemComment(user.id, comment.id)) {
-      setLocalClaps((prev) => prev + 1);
-    }
+    setIsLiked(!isLiked);
   };
 
   // Check if this is a poet reply or if parent comment already has a reply
@@ -104,12 +92,16 @@ function CommentBubble({
               </div>
               <div className="flex items-center gap-4 mt-2">
                 <button
-                  onClick={handleClap}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label={`Clap for this comment. ${localClaps} claps`}
+                  onClick={handleLike}
+                  className={`flex items-center gap-1 text-xs transition-colors ${
+                    isLiked
+                      ? "text-red-500"
+                      : "text-muted-foreground hover:text-red-500"
+                  }`}
+                  aria-label={`Like this comment. ${localLikes} likes`}
                 >
-                  <span className="text-sm">{"👏"}</span>
-                  {localClaps > 0 && <span>{localClaps}</span>}
+                  <span className="text-sm">{isLiked ? "❤️" : "🤍"}</span>
+                  {localLikes > 0 && <span>{localLikes}</span>}
                 </button>
                 {depth === 0 && !isLockedForReply && (
                   <button
@@ -140,15 +132,6 @@ function CommentBubble({
           </div>
         )}
       </div>
-
-      {showOutOfInk && (
-        <OutOfInkModal
-          onClose={() => setShowOutOfInk(false)}
-          dailyUsed={outOfInkInfo.dailyUsed}
-          monthlyUsed={outOfInkInfo.monthlyUsed}
-          timeUntilReset={outOfInkInfo.timeUntilReset}
-        />
-      )}
     </>
   );
 }
@@ -270,10 +253,10 @@ export default function CommentsOverlay({
   const sortedComments = useMemo(() => {
     const sorted = [...topLevelComments];
     if (sortMode === "relevant") {
-      // Most relevant = highest claps + most replies
+      // Most relevant = highest likes + most replies
       sorted.sort((a, b) => {
-        const aScore = a.clapsCount + (repliesByParent[a.id]?.length || 0) * 2;
-        const bScore = b.clapsCount + (repliesByParent[b.id]?.length || 0) * 2;
+        const aScore = a.likesCount + (repliesByParent[a.id]?.length || 0) * 2;
+        const bScore = b.likesCount + (repliesByParent[b.id]?.length || 0) * 2;
         return bScore - aScore;
       });
     } else {
