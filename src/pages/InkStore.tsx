@@ -88,7 +88,7 @@ export default function InkStore() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-background via-primary/5 to-background pb-24">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <div className="mb-8">

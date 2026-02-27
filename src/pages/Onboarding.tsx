@@ -442,7 +442,7 @@ export default function Onboarding() {
     const canProceed = followedCount >= minFollowRequired;
 
     return (
-      <div className="min-h-screen bg-background py-12 px-4">
+      <div className="min-h-screen bg-background py-12 px-4 pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">

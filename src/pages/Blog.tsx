@@ -15,7 +15,7 @@ export default function Blog() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       {/* Hero */}
       <div className="border-b border-border">
         <div className="container mx-auto px-4 py-12 max-w-4xl text-center">

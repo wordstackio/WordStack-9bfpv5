@@ -53,7 +53,7 @@ export default function PoetPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden pb-20 bg-background text-foreground">
+    <div className="min-h-screen overflow-x-hidden pb-24 bg-background text-foreground">
       {/* Banner Image */}
       {poet.bannerImage && (
         <div className="w-full h-48 sm:h-64 md:h-96 overflow-hidden">

@@ -198,7 +198,7 @@ export default function BlogPost() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4 pb-20">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 pb-24">
         <Card className="p-12 text-center max-w-md">
           <h1 className="font-serif text-2xl font-bold mb-4">Post Not Found</h1>
           <p className="text-muted-foreground mb-6">
