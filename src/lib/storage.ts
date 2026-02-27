@@ -946,7 +946,8 @@ export function createPoemComment(
     parentCommentId,
     mentions,
     createdAt: new Date().toISOString(),
-    clapsCount: 0,
+    likesCount: 0,
+    likedByUsers: [],
     ...(isPoetReply && { isPoetReply: true })
   };
 
@@ -982,31 +983,52 @@ export function createPoemComment(
   return comment;
 }
 
-export function clapPoemComment(userId: string, commentId: string): boolean {
-  if (!useInk(userId)) return false;
+export function likePoemComment(userId: string, commentId: string): boolean {
+  const likesKey = `ws_poem_comment_likes_${userId}`;
+  const stored = localStorage.getItem(likesKey);
+  const likes = stored ? JSON.parse(stored) : {};
 
-  const clapsKey = `ws_poem_comment_claps_${userId}`;
-  const stored = localStorage.getItem(clapsKey);
-  const claps = stored ? JSON.parse(stored) : {};
-
-  claps[commentId] = (claps[commentId] || 0) + 1;
-  localStorage.setItem(clapsKey, JSON.stringify(claps));
+  // Check if user already liked this comment
+  if (likes[commentId]) {
+    // Unlike: remove the like
+    likes[commentId] = false;
+  } else {
+    // Like: add the like
+    likes[commentId] = true;
+  }
+  localStorage.setItem(likesKey, JSON.stringify(likes));
 
   const comments = getPoemComments();
   const comment = comments.find((c) => c.id === commentId);
   if (comment) {
-    comment.clapsCount++;
+    // Initialize likedByUsers if it doesn't exist (for migration)
+    if (!comment.likedByUsers) {
+      comment.likedByUsers = [];
+    }
+    
+    // Check if user is in likedByUsers
+    const userIndex = comment.likedByUsers.indexOf(userId);
+    if (userIndex > -1) {
+      // Remove like
+      comment.likedByUsers.splice(userIndex, 1);
+      comment.likesCount--;
+    } else {
+      // Add like
+      comment.likedByUsers.push(userId);
+      comment.likesCount++;
+    }
     localStorage.setItem(POEM_COMMENTS_KEY, JSON.stringify(comments));
   }
 
   return true;
 }
 
-export function getPoemCommentClaps(userId: string, commentId: string): number {
-  const clapsKey = `ws_poem_comment_claps_${userId}`;
-  const stored = localStorage.getItem(clapsKey);
-  const claps = stored ? JSON.parse(stored) : {};
-  return claps[commentId] || 0;
+export function getPoemCommentLikes(userId: string, commentId: string): boolean {
+  const likesKey = `ws_poem_comment_likes_${userId}`;
+  const stored = localStorage.getItem(likesKey);
+  const likes = stored ? JSON.parse(stored) : {};
+  return likes[commentId] || false;
+}
 }
 
 // Ink Wallet Management

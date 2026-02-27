@@ -143,7 +143,8 @@ export interface Comment {
   parentCommentId?: string; // For nested replies
   mentions: string[]; // User IDs mentioned in the comment
   createdAt: string;
-  clapsCount: number;
+  likesCount: number;
+  likedByUsers: string[]; // Array of user IDs who liked this comment
   isPoetReply?: boolean; // Marks poet responses to top-level comments
 }
 
