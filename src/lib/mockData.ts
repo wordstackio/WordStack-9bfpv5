@@ -232,14 +232,15 @@ export const mockPoemComments: Comment[] = [
   {
     id: "pc-3",
     postId: "poem-1",
-    userId: "user-3",
-    userName: "Priya Kapoor",
-    userAvatar: "/images/avatars/avatar-woman-blonde.jpg",
-    content: "@James Thornton Agreed, the ending lingers. It feels like the whole poem is suspended in that in-between moment.",
+    userId: "poet-1",
+    userName: "Elena Rivera",
+    userAvatar: "/images/avatars/avatar-woman-redhead.jpg",
+    content: "Thank you both for reading so closely. That suspended moment is exactly what I was reaching for. The uncertainty feels important.",
     parentCommentId: "pc-2",
-    mentions: ["James"],
+    mentions: [],
     createdAt: "2024-11-20T16:45:00Z",
-    clapsCount: 4
+    clapsCount: 4,
+    isPoetReply: true
   },
   {
     id: "pc-4",
@@ -276,7 +277,8 @@ export const mockPoemComments: Comment[] = [
     parentCommentId: undefined,
     mentions: [],
     createdAt: "2024-11-19T09:30:00Z",
-    clapsCount: 6
+    clapsCount: 6,
+    isPoetReply: true
   },
   // poem-3 comments
   {
@@ -306,14 +308,15 @@ export const mockPoemComments: Comment[] = [
   {
     id: "pc-9",
     postId: "poem-3",
-    userId: "user-5",
-    userName: "Amara Obi",
-    userAvatar: "/images/avatars/avatar-woman-closeup.jpg",
-    content: "@Priya Kapoor Yes! It reads like a gothic love letter. The tension between holding on and letting go is palpable.",
+    userId: "poet-3",
+    userName: "Aria Blackwood",
+    userAvatar: "/images/avatars/avatar-woman-casual.jpg",
+    content: "Priya -- thank you for understanding what I was trying to reach. That sacredness, that duty of witnessing. It's at the heart of why I write.",
     parentCommentId: "pc-8",
     mentions: ["Priya"],
     createdAt: "2024-11-22T15:45:00Z",
-    clapsCount: 7
+    clapsCount: 7,
+    isPoetReply: true
   },
   // poem-4 comments
   {
@@ -339,7 +342,8 @@ export const mockPoemComments: Comment[] = [
     parentCommentId: undefined,
     mentions: [],
     createdAt: "2024-11-11T12:00:00Z",
-    clapsCount: 9
+    clapsCount: 9,
+    isPoetReply: true
   },
   {
     id: "pc-12",
