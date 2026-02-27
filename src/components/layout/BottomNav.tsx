@@ -1,12 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, Compass, Users, Bookmark } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { useCommentsOverlay } from "@/contexts/CommentsOverlayContext";
 
 export default function BottomNav() {
   const location = useLocation();
   const user = getCurrentUser();
+  const { isOpen: isCommentsOpen } = useCommentsOverlay();
 
-  if (!user) return null;
+  if (!user || isCommentsOpen) return null;
 
   const navItems = [
     {
