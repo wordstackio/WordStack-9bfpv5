@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
+// Context for managing comments overlay visibility state
 interface CommentsOverlayContextType {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
