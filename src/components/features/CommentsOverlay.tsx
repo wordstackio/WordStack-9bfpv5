@@ -18,6 +18,7 @@ type SortMode = "relevant" | "recent";
 
 interface CommentsOverlayProps {
   poemId: string;
+  poemPoetId: string;
   comments: Comment[];
   onClose: () => void;
   onCommentAdded: () => void;
@@ -28,11 +29,13 @@ function CommentBubble({
   replies,
   onReply,
   depth = 0,
+  parentHasReply = false,
 }: {
   comment: Comment;
   replies: Comment[];
   onReply: (commentId: string, userName: string) => void;
   depth?: number;
+  parentHasReply?: boolean;
 }) {
   const user = getCurrentUser();
   const [localClaps, setLocalClaps] = useState(comment.clapsCount);
@@ -61,6 +64,9 @@ function CommentBubble({
     }
   };
 
+  // Check if this is a poet reply or if parent comment already has a reply
+  const isLockedForReply = comment.isPoetReply || parentHasReply || depth > 0;
+
   return (
     <>
       <div
@@ -80,10 +86,15 @@ function CommentBubble({
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-medium text-foreground">
                   {comment.userName}
                 </span>
+                {comment.isPoetReply && (
+                  <span className="text-xs bg-accent/60 text-foreground/80 px-2 py-0.5 rounded-full font-medium">
+                    Poet
+                  </span>
+                )}
                 <span className="text-xs text-muted-foreground">
                   {shortTimeAgo(comment.createdAt)}
                 </span>
@@ -100,7 +111,7 @@ function CommentBubble({
                   <span className="text-sm">{"👏"}</span>
                   {localClaps > 0 && <span>{localClaps}</span>}
                 </button>
-                {depth === 0 && (
+                {depth === 0 && !isLockedForReply && (
                   <button
                     onClick={() => onReply(comment.id, comment.userName)}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
@@ -123,6 +134,7 @@ function CommentBubble({
                 replies={[]}
                 onReply={onReply}
                 depth={depth + 1}
+                parentHasReply={false}
               />
             ))}
           </div>
@@ -143,6 +155,7 @@ function CommentBubble({
 
 export default function CommentsOverlay({
   poemId,
+  poemPoetId,
   comments,
   onClose,
   onCommentAdded,
@@ -158,6 +171,7 @@ export default function CommentsOverlay({
   const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; name: string; avatar: string }>>([]);
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
   const [mentionIndex, setMentionIndex] = useState(-1);
+  const [replyError, setReplyError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const commentsEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -273,12 +287,46 @@ export default function CommentsOverlay({
   }, [topLevelComments, repliesByParent, sortMode]);
 
   const handleReply = (commentId: string, userName: string) => {
+    // Get the comment being replied to
+    const commentToReply = comments.find((c) => c.id === commentId);
+    
+    // Check if this comment already has a reply
+    const hasExistingReply = comments.some(
+      (c) => c.parentCommentId === commentId
+    );
+    
+    if (hasExistingReply) {
+      setReplyError(
+        "This comment already has a poet response. No further replies allowed."
+      );
+      setTimeout(() => setReplyError(null), 4000);
+      return;
+    }
+    
+    // Check if trying to reply to a poet response
+    if (commentToReply?.isPoetReply) {
+      setReplyError("You cannot reply to a poet response.");
+      setTimeout(() => setReplyError(null), 4000);
+      return;
+    }
+    
+    // Check if user is the poet (only poet can reply to comments)
+    if (!user || user.id !== poemPoetId) {
+      setReplyError("Only the poem's poet can reply to comments.");
+      setTimeout(() => setReplyError(null), 4000);
+      return;
+    }
+    
+    setReplyError(null);
     setReplyTo({ commentId, userName });
     inputRef.current?.focus();
   };
 
   const handleSubmit = () => {
     if (!user || !newComment.trim()) return;
+
+    // If replying, mark as poet reply since only poet can reply
+    const isPoetReply = replyTo ? user.id === poemPoetId : false;
 
     createPoemComment(
       poemId,
@@ -288,11 +336,13 @@ export default function CommentsOverlay({
       replyTo
         ? `@${replyTo.userName} ${newComment.trim()}`
         : newComment.trim(),
-      replyTo?.commentId
+      replyTo?.commentId,
+      isPoetReply
     );
 
     setNewComment("");
     setReplyTo(null);
+    setReplyError(null);
     onCommentAdded();
   };
 
@@ -383,18 +433,31 @@ export default function CommentsOverlay({
             </div>
           ) : (
             <div className="divide-y divide-border/30">
-              {sortedComments.map((comment) => (
-                <CommentBubble
-                  key={comment.id}
-                  comment={comment}
-                  replies={repliesByParent[comment.id] || []}
-                  onReply={handleReply}
-                />
-              ))}
+              {sortedComments.map((comment) => {
+                const hasReplyToThisComment = comments.some(
+                  (c) => c.parentCommentId === comment.id
+                );
+                return (
+                  <CommentBubble
+                    key={comment.id}
+                    comment={comment}
+                    replies={repliesByParent[comment.id] || []}
+                    onReply={handleReply}
+                    parentHasReply={hasReplyToThisComment}
+                  />
+                );
+              })}
             </div>
           )}
           <div ref={commentsEndRef} />
         </div>
+
+        {/* Error Message */}
+        {replyError && (
+          <div className="px-4 py-2 bg-red-50 border-b border-red-200 text-red-700 text-sm rounded-none">
+            {replyError}
+          </div>
+        )}
 
         {/* Input Area */}
         <div className="border-t border-border/60 px-4 py-3 flex-shrink-0 bg-background">

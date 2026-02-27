@@ -930,7 +930,8 @@ export function createPoemComment(
   userName: string,
   userAvatar: string | undefined,
   content: string,
-  parentCommentId?: string
+  parentCommentId?: string,
+  isPoetReply: boolean = false
 ): Comment {
   const mentions = extractMentions(content);
   const mentionedUserIds = getMentionedUserIds(content);
@@ -945,7 +946,8 @@ export function createPoemComment(
     parentCommentId,
     mentions,
     createdAt: new Date().toISOString(),
-    clapsCount: 0
+    clapsCount: 0,
+    ...(isPoetReply && { isPoetReply: true })
   };
 
   const comments = getPoemComments();

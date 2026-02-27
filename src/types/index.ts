@@ -144,6 +144,7 @@ export interface Comment {
   mentions: string[]; // User IDs mentioned in the comment
   createdAt: string;
   clapsCount: number;
+  isPoetReply?: boolean; // Marks poet responses to top-level comments
 }
 
 export interface Notification {

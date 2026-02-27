@@ -364,6 +364,7 @@ export default function PoemPage() {
       {showCommentsOverlay && (
         <CommentsOverlay
           poemId={poem.id}
+          poemPoetId={poem.poetId}
           comments={comments}
           onClose={() => setShowCommentsOverlay(false)}
           onCommentAdded={handleCommentAdded}
