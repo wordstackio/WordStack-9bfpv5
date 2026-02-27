@@ -150,7 +150,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-background py-12 px-4 pb-24">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">

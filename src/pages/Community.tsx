@@ -391,7 +391,7 @@ export default function Community() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       <div className="mx-auto max-w-xl">
 
         {/* Blog Highlights - Right after header */}

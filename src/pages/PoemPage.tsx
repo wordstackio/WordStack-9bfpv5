@@ -127,7 +127,7 @@ export default function PoemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-10 md:py-16">
+    <div className="min-h-screen bg-background py-10 md:py-16 pb-24">
       <article className="container mx-auto px-5 max-w-2xl">
         {/* Poem Title */}
         <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-8 leading-tight text-balance">

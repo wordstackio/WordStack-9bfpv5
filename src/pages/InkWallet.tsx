@@ -63,7 +63,7 @@ export default function InkWallet() {
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24">
       <div className="container mx-auto px-4 py-6 max-w-3xl">
         {/* Header */}
         <div className="mb-6">
