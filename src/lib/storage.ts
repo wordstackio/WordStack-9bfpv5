@@ -1029,7 +1029,6 @@ export function getPoemCommentLikes(userId: string, commentId: string): boolean 
   const likes = stored ? JSON.parse(stored) : {};
   return likes[commentId] || false;
 }
-}
 
 // Ink Wallet Management
 export interface InkTransaction {
