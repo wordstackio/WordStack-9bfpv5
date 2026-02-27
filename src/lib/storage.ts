@@ -832,6 +832,53 @@ export function getCommentClaps(userId: string, commentId: string): number {
   return claps[commentId] || 0;
 }
 
+export function likeComment(userId: string, commentId: string): boolean {
+  const likesKey = `ws_comment_likes_${userId}`;
+  const stored = localStorage.getItem(likesKey);
+  const likes = stored ? JSON.parse(stored) : {};
+
+  // Check if user already liked this comment
+  if (likes[commentId]) {
+    // Unlike: remove the like
+    likes[commentId] = false;
+  } else {
+    // Like: add the like
+    likes[commentId] = true;
+  }
+  localStorage.setItem(likesKey, JSON.stringify(likes));
+
+  const comments = getComments();
+  const comment = comments.find(c => c.id === commentId);
+  if (comment) {
+    // Initialize likedByUsers if it doesn't exist (for migration)
+    if (!comment.likedByUsers) {
+      comment.likedByUsers = [];
+    }
+    
+    // Check if user is in likedByUsers
+    const userIndex = comment.likedByUsers.indexOf(userId);
+    if (userIndex > -1) {
+      // Remove like
+      comment.likedByUsers.splice(userIndex, 1);
+      comment.likesCount = (comment.likesCount || 1) - 1;
+    } else {
+      // Add like
+      comment.likedByUsers.push(userId);
+      comment.likesCount = (comment.likesCount || 0) + 1;
+    }
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+  }
+
+  return true;
+}
+
+export function getCommentLikes(userId: string, commentId: string): boolean {
+  const likesKey = `ws_comment_likes_${userId}`;
+  const stored = localStorage.getItem(likesKey);
+  const likes = stored ? JSON.parse(stored) : {};
+  return likes[commentId] || false;
+}
+
 // Notifications Management
 export function getNotifications(userId: string): Notification[] {
   const stored = localStorage.getItem(NOTIFICATIONS_KEY);

@@ -8,22 +8,18 @@ import {
   getFollows,
   togglePostLike,
   getPostLiked,
-  canUseInk,
-  getFreeInkUsage,
   getComments,
   createComment,
-  clapComment,
-  getCommentClaps,
+  likeComment,
+  getCommentLikes,
   getUnreadNotificationsCount,
   votePoll,
   isFollowing
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
-import { Users, MessageCircle, Send, Feather, Clock, Reply, Repeat2, Share, MoreHorizontal, Heart, ExternalLink, BarChart3, Quote, Lock, Globe } from "lucide-react";
+import { Users, MessageCircle, Send, Feather, Clock, Reply, Share, Heart, ExternalLink, BarChart3, Quote, Lock, Globe } from "lucide-react";
 import { Fragment } from "react";
 import { mockPoets } from "@/lib/mockData";
-import OutOfInkModal from "@/components/features/OutOfInkModal";
-import MentionRenderer from "@/components/features/MentionRenderer";
 
 // Linkify URLs in text
 function linkifyText(text: string) {
@@ -86,14 +82,6 @@ export default function Community() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showOutOfInkModal, setShowOutOfInkModal] = useState(false);
-  const [outOfInkInfo, setOutOfInkInfo] = useState<{ dailyUsed: number; monthlyUsed: number; timeUntilReset: string }>(
-    { dailyUsed: 0, monthlyUsed: 0, timeUntilReset: "" }
-  );
-  const [mentionSuggestions, setMentionSuggestions] = useState<Array<{ id: string; name: string; avatar: string }>>({});
-  const [showMentionSuggestions, setShowMentionSuggestions] = useState<Record<string, boolean>>({});
-  const [activeMentionInputId, setActiveMentionInputId] = useState<string | null>(null);
-  const suggestionsRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (!user) {
@@ -114,61 +102,10 @@ export default function Community() {
     return () => clearInterval(interval);
   }, [user, navigate, searchParams]);
 
-  // Close mention suggestions on outside click
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      Object.entries(suggestionsRefs.current).forEach(([key, ref]) => {
-        if (ref && !ref.contains(e.target as Node)) {
-          setShowMentionSuggestions(prev => ({ ...prev, [key]: false }));
-        }
-      });
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Detect @mentions for autocomplete
-  useEffect(() => {
-    Object.entries(commentInputs).forEach(([inputId, content]) => {
-      const lastAtIndex = content.lastIndexOf("@");
-      if (lastAtIndex === -1 || (lastAtIndex > 0 && content[lastAtIndex - 1] !== " " && content[lastAtIndex - 1] !== "\n")) {
-        setShowMentionSuggestions(prev => ({ ...prev, [inputId]: false }));
-        return;
-      }
-
-      const textAfterAt = content.substring(lastAtIndex + 1);
-      const mentionRegex = /^\w*$/;
-      
-      if (!mentionRegex.test(textAfterAt)) {
-        setShowMentionSuggestions(prev => ({ ...prev, [inputId]: false }));
-        return;
-      }
-
-      // Filter poets based on text after @
-      const filtered = mockPoets.filter(poet =>
-        poet.name.toLowerCase().includes(textAfterAt.toLowerCase()) &&
-        poet.id !== user?.id // Don't suggest mentioning yourself
-      );
-
-      setMentionSuggestions(prev => ({ ...prev, [inputId]: filtered }));
-      setShowMentionSuggestions(prev => ({ ...prev, [inputId]: filtered.length > 0 && textAfterAt.length > 0 }));
-    });
-  }, [commentInputs, user?.id]);
-
   const loadNotifications = () => {
     if (user) {
       setUnreadCount(getUnreadNotificationsCount(user.id));
     }
-  };
-
-  const handleSelectMention = (poetName: string, inputId: string) => {
-    const content = commentInputs[inputId] || "";
-    const lastAtIndex = content.lastIndexOf("@");
-    const beforeMention = content.substring(0, lastAtIndex);
-    
-    const updatedComment = beforeMention + "@" + poetName + " ";
-    setCommentInputs({ ...commentInputs, [inputId]: updatedComment });
-    setShowMentionSuggestions(prev => ({ ...prev, [inputId]: false }));
   };
 
   const loadPosts = () => {
@@ -242,22 +179,9 @@ export default function Community() {
     loadNotifications();
   };
 
-  const handleCommentClap = (commentId: string) => {
+  const handleCommentLike = (commentId: string) => {
     if (!user) return;
-    
-    const check = canUseInk(user.id);
-    if (!check.canUse) {
-      const usage = getFreeInkUsage(user.id);
-      setOutOfInkInfo({
-        dailyUsed: usage.dailyUsed,
-        monthlyUsed: usage.monthlyUsed,
-        timeUntilReset: check.timeUntilReset || "tomorrow"
-      });
-      setShowOutOfInkModal(true);
-      return;
-    }
-    
-    clapComment(user.id, commentId);
+    likeComment(user.id, commentId);
     loadPosts();
   };
 
@@ -276,10 +200,11 @@ export default function Community() {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
-  const renderComment = (comment: Comment, postComments: Comment[], depth: number = 0) => {
+  const renderComment = (comment: Comment, postId: string, postAuthorId: string, postComments: Comment[], depth: number = 0) => {
     const replies = postComments.filter(c => c.parentCommentId === comment.id);
-    const userClaps = getCommentClaps(user.id, comment.id);
+    const isLiked = getCommentLikes(user.id, comment.id);
     const isReplying = replyingTo === comment.id;
+    const canReply = depth === 0 && user.id === postAuthorId && !replies.some(r => r.parentCommentId === comment.id);
     
     return (
       <div key={comment.id} className={`${depth > 0 ? 'ml-10 mt-2' : 'mt-3'}`}>
@@ -297,80 +222,59 @@ export default function Community() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-sm text-foreground">{comment.userName}</span>
+              {comment.isPoetReply && (
+                <span className="text-xs bg-accent/60 text-foreground/80 px-2 py-0.5 rounded-full font-medium">
+                  Author
+                </span>
+              )}
               <span className="text-xs text-muted-foreground">{getTimeAgo(comment.createdAt)}</span>
             </div>
             <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0.5">
-              <MentionRenderer content={comment.content} className="text-sm leading-relaxed whitespace-pre-wrap break-words text-foreground mt-0" />
+              {comment.content}
             </p>
             
             <div className="flex items-center gap-5 mt-1.5">
               <button
-                onClick={() => handleCommentClap(comment.id)}
+                onClick={() => handleCommentLike(comment.id)}
                 className={`flex items-center gap-1 text-xs transition-colors ${
-                  userClaps > 0 ? 'text-primary' : 'text-muted-foreground hover:text-primary'
+                  isLiked ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'
                 }`}
               >
-                <Feather className="w-3 h-3" />
-                {comment.clapsCount > 0 && <span>{comment.clapsCount}</span>}
+                <Heart className={`w-3 h-3 ${isLiked ? 'fill-red-500' : ''}`} />
+                {comment.likesCount > 0 && <span>{comment.likesCount}</span>}
               </button>
               
-              <button
-                onClick={() => setReplyingTo(isReplying ? null : comment.id)}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Reply className="w-3 h-3" />
-                <span>Reply</span>
-              </button>
+              {canReply && (
+                <button
+                  onClick={() => setReplyingTo(isReplying ? null : comment.id)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Reply className="w-3 h-3" />
+                  <span>Reply</span>
+                </button>
+              )}
             </div>
             
-            {isReplying && (
+            {isReplying && canReply && (
               <div className="mt-2 flex gap-2 relative">
                 <div className="flex-1 relative">
                   <Input
                     value={commentInputs[comment.id] || ""}
                     onChange={(e) => setCommentInputs({ ...commentInputs, [comment.id]: e.target.value })}
-                    onFocus={() => setActiveMentionInputId(comment.id)}
-                    onBlur={() => setActiveMentionInputId(null)}
                     placeholder={`Reply to ${comment.userName}...`}
                     className="text-sm h-8 border-muted bg-transparent w-full"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        handleCommentSubmit(comment.postId, comment.id);
+                        handleCommentSubmit(postId, comment.id);
                       }
                     }}
                   />
-                  {/* Mention Suggestions Dropdown for Replies */}
-                  {showMentionSuggestions[comment.id] && mentionSuggestions[comment.id]?.length > 0 && (
-                    <div
-                      ref={(el) => {
-                        if (el) suggestionsRefs.current[comment.id] = el;
-                      }}
-                      className="absolute bottom-full left-0 mb-1 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto"
-                    >
-                      {mentionSuggestions[comment.id]?.map((poet) => (
-                        <button
-                          key={poet.id}
-                          onClick={() => handleSelectMention(poet.name.replace(/\s+/g, ''), comment.id)}
-                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-b-0"
-                        >
-                          {poet.avatar ? (
-                            <img src={poet.avatar} alt={poet.name} className="w-6 h-6 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                              <Feather className="w-3 h-3 text-muted-foreground" />
-                            </div>
-                          )}
-                          <span className="text-sm font-medium text-foreground">{poet.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleCommentSubmit(comment.postId, comment.id)}
+                  onClick={() => handleCommentSubmit(postId, comment.id)}
                   disabled={!commentInputs[comment.id]?.trim()}
                   className="h-8 px-2 text-primary hover:text-primary hover:bg-primary/10"
                 >
@@ -381,7 +285,7 @@ export default function Community() {
             
             {replies.length > 0 && (
               <div>
-                {replies.map(reply => renderComment(reply, postComments, depth + 1))}
+                {replies.map(reply => renderComment(reply, postId, postAuthorId, postComments, depth + 1))}
               </div>
             )}
           </div>
@@ -712,12 +616,6 @@ export default function Community() {
                             <span className="text-xs">{post.commentsCount}</span>
                           )}
                         </button>
-                        
-                        <button
-                          className="flex items-center gap-1.5 p-2 rounded-full text-muted-foreground hover:text-green-600 hover:bg-green-600/10 transition-colors"
-                        >
-                          <Repeat2 className="w-[18px] h-[18px]" />
-                        </button>
 
                         <button
                           onClick={() => handleLike(post.id)}
@@ -843,7 +741,7 @@ export default function Community() {
                           <div>
                             {getComments(post.id)
                               .filter(c => !c.parentCommentId)
-                              .map(comment => renderComment(comment, getComments(post.id)))
+                              .map(comment => renderComment(comment, post.id, post.poetId, getComments(post.id)))
                             }
                             {post.commentsCount === 0 && (
                               <p className="text-xs text-muted-foreground text-center py-4">
@@ -862,16 +760,6 @@ export default function Community() {
           </div>
         )}
       </div>
-      
-      {/* Out of Ink Modal */}
-      {showOutOfInkModal && (
-        <OutOfInkModal
-          onClose={() => setShowOutOfInkModal(false)}
-          dailyUsed={outOfInkInfo.dailyUsed}
-          monthlyUsed={outOfInkInfo.monthlyUsed}
-          timeUntilReset={outOfInkInfo.timeUntilReset}
-        />
-      )}
     </div>
   );
 }
