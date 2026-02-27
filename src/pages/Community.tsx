@@ -202,9 +202,9 @@ export default function Community() {
 
   const renderComment = (comment: Comment, postId: string, postAuthorId: string, postComments: Comment[], depth: number = 0) => {
     const replies = postComments.filter(c => c.parentCommentId === comment.id);
-    const isLiked = getCommentLikes(user.id, comment.id);
+    const isLiked = user ? getCommentLikes(user.id, comment.id) : false;
     const isReplying = replyingTo === comment.id;
-    const canReply = depth === 0 && user.id === postAuthorId && !replies.some(r => r.parentCommentId === comment.id);
+    const canReply = depth === 0 && user?.id === postAuthorId && !replies.some(r => r.parentCommentId === comment.id);
     
     return (
       <div key={comment.id} className={`${depth > 0 ? 'ml-10 mt-2' : 'mt-3'}`}>
