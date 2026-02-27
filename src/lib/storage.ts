@@ -832,8 +832,11 @@ export function getCommentClaps(userId: string, commentId: string): number {
   return claps[commentId] || 0;
 }
 
+// Like/Unlike community post comments (toggle behavior, no ink cost)
+const COMMENT_LIKES_KEY = "ws_comment_likes_";
+
 export function likeComment(userId: string, commentId: string): boolean {
-  const likesKey = `ws_comment_likes_${userId}`;
+  const likesKey = COMMENT_LIKES_KEY + userId;
   const stored = localStorage.getItem(likesKey);
   const likes = stored ? JSON.parse(stored) : {};
 
@@ -848,7 +851,7 @@ export function likeComment(userId: string, commentId: string): boolean {
   localStorage.setItem(likesKey, JSON.stringify(likes));
 
   const comments = getComments();
-  const comment = comments.find(c => c.id === commentId);
+  const comment = comments.find((c) => c.id === commentId);
   if (comment) {
     // Initialize likedByUsers if it doesn't exist (for migration)
     if (!comment.likedByUsers) {
@@ -860,11 +863,11 @@ export function likeComment(userId: string, commentId: string): boolean {
     if (userIndex > -1) {
       // Remove like
       comment.likedByUsers.splice(userIndex, 1);
-      comment.likesCount = (comment.likesCount || 1) - 1;
+      comment.likesCount = Math.max(0, comment.likesCount - 1);
     } else {
       // Add like
       comment.likedByUsers.push(userId);
-      comment.likesCount = (comment.likesCount || 0) + 1;
+      comment.likesCount++;
     }
     localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
   }
@@ -873,7 +876,7 @@ export function likeComment(userId: string, commentId: string): boolean {
 }
 
 export function getCommentLikes(userId: string, commentId: string): boolean {
-  const likesKey = `ws_comment_likes_${userId}`;
+  const likesKey = COMMENT_LIKES_KEY + userId;
   const stored = localStorage.getItem(likesKey);
   const likes = stored ? JSON.parse(stored) : {};
   return likes[commentId] || false;
