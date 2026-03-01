@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { X, User, Send, ChevronDown } from "lucide-react";
+import { X, User, Send, ChevronDown, ArrowLeft } from "lucide-react";
 import { Comment } from "@/types";
 import { shortTimeAgo } from "@/lib/utils";
 import {
@@ -10,6 +10,7 @@ import {
 import { getCurrentUser } from "@/lib/auth";
 import { useCommentsOverlay } from "@/contexts/CommentsOverlayContext";
 import { mockPoets } from "@/lib/mockData";
+import MentionRenderer from "@/components/features/MentionRenderer";
 
 type SortMode = "relevant" | "recent";
 

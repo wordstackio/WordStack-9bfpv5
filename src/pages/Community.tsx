@@ -17,8 +17,9 @@ import {
   isFollowing
 } from "@/lib/storage";
 import { CommunityPost, Comment } from "@/types";
-import { Users, MessageCircle, Send, Feather, Clock, Reply, Share, Heart, ExternalLink, BarChart3, Quote, Lock, Globe } from "lucide-react";
+import { Users, MessageCircle, Send, Feather, Clock, Reply, Share, Heart, ExternalLink, BarChart3, Quote, Lock, Globe, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { Fragment } from "react";
+import MentionRenderer from "@/components/features/MentionRenderer";
 import { mockPoets } from "@/lib/mockData";
 
 // Linkify URLs in text
@@ -82,6 +83,10 @@ export default function Community() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [activeMentionInputId, setActiveMentionInputId] = useState<string | null>(null);
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState<Record<string, boolean>>({});
+  const [mentionSuggestions, setMentionSuggestions] = useState<Record<string, typeof mockPoets>>({});
+  const suggestionsRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     if (!user) {
@@ -678,9 +683,7 @@ export default function Community() {
                                     <Input
                                       value={commentInputs[post.id] || ""}
                                       onChange={(e) => setCommentInputs({ ...commentInputs, [post.id]: e.target.value })}
-                                      onFocus={() => setActiveMentionInputId(post.id)}
-                                      onBlur={() => setActiveMentionInputId(null)}
-                                      placeholder="Post your reply... (use @username to mention)"
+                                      placeholder="Post your reply..."
                                       className="text-sm h-8 border-muted bg-transparent rounded-full px-3 w-full"
                                       onKeyDown={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
@@ -689,32 +692,6 @@ export default function Community() {
                                         }
                                       }}
                                     />
-                                    {/* Mention Suggestions Dropdown */}
-                                    {showMentionSuggestions[post.id] && mentionSuggestions[post.id]?.length > 0 && (
-                                      <div
-                                        ref={(el) => {
-                                          if (el) suggestionsRefs.current[post.id] = el;
-                                        }}
-                                        className="absolute bottom-full left-0 mb-1 w-full bg-background border border-border rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto"
-                                      >
-                                        {mentionSuggestions[post.id]?.map((poet) => (
-                                          <button
-                                            key={poet.id}
-                                            onClick={() => handleSelectMention(poet.name.replace(/\s+/g, ''), post.id)}
-                                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted/50 transition-colors text-left border-b border-border/50 last:border-b-0"
-                                          >
-                                            {poet.avatar ? (
-                                              <img src={poet.avatar} alt={poet.name} className="w-6 h-6 rounded-full object-cover" />
-                                            ) : (
-                                              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                                                <Feather className="w-3 h-3 text-muted-foreground" />
-                                              </div>
-                                            )}
-                                            <span className="text-sm font-medium text-foreground">{poet.name}</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
                                   </div>
                                   <Button
                                     size="sm"
