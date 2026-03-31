@@ -1,4 +1,5 @@
 
+// Main application component - handles routing and global state
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { restoreSession, getCurrentUser } from "@/lib/auth";
